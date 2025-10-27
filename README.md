@@ -109,7 +109,7 @@ LLMRouter/
         ├── architecture.png
         └── data_flow.pdf
 
-
+```
 
 # ⚙️ Set up and initialization (wit pip install)
 1. **Create a virtual environment**
