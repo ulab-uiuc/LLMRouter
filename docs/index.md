@@ -1,7 +1,7 @@
 ---
-title: Material for MkDocs
+title: LLM Router
 ---
 
-# Material for MkDocs
+# LLM Router
 
-Welcome to Material for MkDocs.
+Welcome to LLM Router.
