@@ -1,0 +1,49 @@
+# Automix Router Configuration
+# =============================
+# 配置文件用于 Automix 路由器的训练和评估
+
+# 真实数据示例配置
+real_data:
+  # 数据路径配置
+  data_path: "./data/nq/train_test_nq_split.jsonl"
+  output_dir: "./data/nq"
+
+  # 模型配置
+  engine_small: "meta/llama-3.1-8b-instruct"
+  engine_large: "meta/llama-3.1-70b-instruct"
+
+  # 路由方法配置
+  routing_method: "POMDP"  # 可选: "Threshold", "SelfConsistency", "POMDP"
+  num_bins: 8
+
+  # 模型列配置
+  columns:
+    slm: "llama13b_f1"      # 小模型性能列
+    llm: "llama70b_f1"      # 大模型性能列
+    verifier: "p_ver_13b"   # 验证器置信度列
+
+  # 成本配置
+  costs:
+    small_model: 1          # 小模型成本
+    large_model: 50         # 大模型成本
+    verifier: 1             # 验证器成本
+
+  # 训练配置
+  training:
+    device: "cpu"           # 训练设备: "cpu" 或 "cuda"
+    verbose: true           # 是否打印详细信息
+
+  # 推理配置
+  inference:
+    num_samples: 5          # 用于推理演示的样本数量
+
+
+
+# 显示配置
+display:
+  separator_width: 70       # 分隔线宽度
+  precision:
+    ibc_lift: 4             # IBC Lift 显示精度
+    performance: 4          # 性能显示精度
+    cost: 2                 # 成本显示精度
+    percentage: 1           # 百分比显示精度

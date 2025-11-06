@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import torch
 import torch.nn as nn
 
-from llmrouter.data import DataLoader
+from llmrouter.data.data_loader import DataLoader
 
 
 class MetaRouter(nn.Module, ABC):
