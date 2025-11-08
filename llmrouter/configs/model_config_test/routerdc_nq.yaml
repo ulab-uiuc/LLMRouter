@@ -1,0 +1,65 @@
+# RouterDC Configuration for NQ Dataset
+# ======================================
+# Configuration for training RouterDC on Natural Questions (NQ) dataset
+
+# Data paths and preprocessing
+data:
+  # Training data
+  train_input_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/router_train_data_nq.json"
+  train_output_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/output/nq_train.json"
+
+  # Test data
+  test_input_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/final_test_nq_split.json"
+  test_output_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/output/nq_test.json"
+
+  # Data preprocessing
+  n_clusters: 3  # Number of clusters for training data
+  max_test_samples: 500  # Max samples for test set (null for all)
+  skip_existing: true  # Skip if preprocessed data already exists
+
+# Model configuration
+model:
+  backbone: "microsoft/mdeberta-v3-base"
+  hidden_state_dim: 768
+  num_llms: 6  # Number of LLMs to route between
+  similarity_function: "cos"  # "cos" or "inner"
+
+# Training hyperparameters
+training:
+  batch_size: 32
+  training_steps: 500
+  learning_rate: 5.0e-5
+
+  # Loss configuration
+  top_k: 3  # Top-k LLMs for positive samples
+  last_k: 3  # Last-k LLMs for negative samples
+  temperature: 1.0
+
+  # Loss weights
+  sample_loss_weight: 0.0  # Weight for sample-sample contrastive loss
+  cluster_loss_weight: 1.0  # Weight for cluster contrastive loss
+  H: 3  # Number of negative samples
+
+  # Optimization
+  gradient_accumulation: 1
+
+  # Device
+  device: "cuda"
+  seed: 1
+
+# Evaluation
+evaluation:
+  eval_steps: 50  # Evaluate every N steps
+  test_data_type: "probability"  # "probability" or "multi_attempt"
+
+# Output
+output:
+  save_path: "./logs/nq_router"
+  save_training_log: true
+  save_config: true
+
+# Display settings
+display:
+  separator_width: 70
+  show_progress: true
+  verbose: true

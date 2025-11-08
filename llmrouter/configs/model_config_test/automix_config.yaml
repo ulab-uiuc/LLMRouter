@@ -1,49 +1,49 @@
 # Automix Router Configuration
 # =============================
-# 配置文件用于 Automix 路由器的训练和评估
+# Configuration file for Automix router training and evaluation
 
-# 真实数据示例配置
+# Real data example configuration
 real_data:
-  # 数据路径配置
+  # Data path configuration
   data_path: "./data/nq/train_test_nq_split.jsonl"
   output_dir: "./data/nq"
 
-  # 模型配置
+  # Model configuration
   engine_small: "meta/llama-3.1-8b-instruct"
   engine_large: "meta/llama-3.1-70b-instruct"
 
-  # 路由方法配置
-  routing_method: "POMDP"  # 可选: "Threshold", "SelfConsistency", "POMDP"
+  # Routing method configuration
+  routing_method: "POMDP"  # Options: "Threshold", "SelfConsistency", "POMDP"
   num_bins: 8
 
-  # 模型列配置
+  # Model column configuration
   columns:
-    slm: "llama13b_f1"      # 小模型性能列
-    llm: "llama70b_f1"      # 大模型性能列
-    verifier: "p_ver_13b"   # 验证器置信度列
+    slm: "llama13b_f1"      # Small model performance column
+    llm: "llama70b_f1"      # Large model performance column
+    verifier: "p_ver_13b"   # Verifier confidence column
 
-  # 成本配置
+  # Cost configuration
   costs:
-    small_model: 1          # 小模型成本
-    large_model: 50         # 大模型成本
-    verifier: 1             # 验证器成本
+    small_model: 1          # Small model cost
+    large_model: 50         # Large model cost
+    verifier: 1             # Verifier cost
 
-  # 训练配置
+  # Training configuration
   training:
-    device: "cpu"           # 训练设备: "cpu" 或 "cuda"
-    verbose: true           # 是否打印详细信息
+    device: "cpu"           # Training device: "cpu" or "cuda"
+    verbose: true           # Whether to print detailed information
 
-  # 推理配置
+  # Inference configuration
   inference:
-    num_samples: 5          # 用于推理演示的样本数量
+    num_samples: 5          # Number of samples for inference demonstration
 
 
 
-# 显示配置
+# Display configuration
 display:
-  separator_width: 70       # 分隔线宽度
+  separator_width: 70       # Separator line width
   precision:
-    ibc_lift: 4             # IBC Lift 显示精度
-    performance: 4          # 性能显示精度
-    cost: 2                 # 成本显示精度
-    percentage: 1           # 百分比显示精度
+    ibc_lift: 4             # IBC Lift display precision
+    performance: 4          # Performance display precision
+    cost: 2                 # Cost display precision
+    percentage: 1           # Percentage display precision

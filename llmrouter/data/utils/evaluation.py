@@ -267,14 +267,14 @@ def get_longformer_representation(text):
     # We set the [CLS] token to have global attention so it can attend to the entire sequence
     inputs = tokenizer(text, return_tensors="pt", max_length=4096, truncation=True)
 
-    # 将输入移动到指定设备
+    # Move inputs to specified device
     inputs = {k: v.to(_device) for k, v in inputs.items()}
 
     # Create global attention mask - set the first token ([CLS]) to have global attention
     global_attention_mask = torch.zeros(
         inputs["input_ids"].shape,
         dtype=torch.long,
-        device=_device  # 直接在创建时指定设备
+        device=_device  # Specify device directly when creating
     )
     # Set the CLS token to have global attention
     global_attention_mask[:, 0] = 1
@@ -300,7 +300,7 @@ def get_longformer_representation(text):
         "all_hidden_states": outputs.hidden_states if hasattr(outputs, "hidden_states") else None
     }
 
-    # 返回的是张量，保持在GPU上
+    # Return tensor, keep it on GPU
     return representations["cls_representation"]
 
 
@@ -408,7 +408,7 @@ def evaluate_code(generated_code, test_cases, timeout=5):
 from openai import OpenAI
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
-    api_key="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",  # 替换为你的 API key
+    api_key="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",  # Replace with your API key
     timeout=300,
     max_retries=2
 )

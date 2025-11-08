@@ -1,0 +1,28 @@
+[project]
+name = "routerdc"
+version = "0.1.0"
+description = "RouterDC: Query-Based Router by Dual Contrastive Learning for Assembling Large Language Models"
+requires-python = "==3.10.*"
+dependencies = [
+    "transformers>=4.30",
+    "tqdm>=4.65",
+    "numpy>=1.23",
+    "pandas>=1.5",
+    "torch",
+    "torchvision",
+    "tiktoken",
+    "protobuf",
+    "sentencepiece",
+    "scikit-learn>=1.7.2",
+    "pyarrow>=22.0.0",
+    "openai>=2.6.1",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
