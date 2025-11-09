@@ -14,7 +14,7 @@ from .dataframe_utils import clean_df
 from .prompting import (
     format_mc_prompt, format_gsm8k_prompt, format_math_prompt,
     format_commonsense_qa_prompt, format_mbpp_prompt, format_humaneval_prompt,
-    generate_task_query
+    generate_task_query, format_batch_queries, register_prompt, get_available_tasks
 )
 from .progress import ProgressTracker
 from .conversation import (
@@ -42,7 +42,8 @@ __all__ = ["load_csv",
     'to_tensor', 'clean_df',
     'format_mc_prompt', 'format_gsm8k_prompt', 'format_math_prompt',
     'format_commonsense_qa_prompt', 'format_mbpp_prompt', 'format_humaneval_prompt',
-    'generate_task_query', 'ProgressTracker',
+    'generate_task_query', 'format_batch_queries', 'register_prompt', 'get_available_tasks',
+    'ProgressTracker',
     'extract_user_prompt', 'extract_model_response',
     'aggregate_preferences_by_query', 'calculate_model_scores',
     'extract_arena_user_prompt', 'extract_arena_model_response',
