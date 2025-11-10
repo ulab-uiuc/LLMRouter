@@ -1,0 +1,35 @@
+# Config parameters for svmrouter testing:
+
+
+data_path:
+  query_data_train: 'data/example_data/query_data/default_query_train.jsonl'
+  query_data_test: 'data/example_data/query_data/default_query_test.jsonl'
+  query_embedding_data: 'data/example_data/routing_data/query_embeddings_longformer.pt'
+  routing_data_train: 'data/example_data/routing_data/default_routing_train_data.jsonl'
+  routing_data_test: 'data/example_data/routing_data/default_routing_test_data.jsonl'
+  llm_data: 'data/example_data/llm_candidates/default_llm.json'
+  llm_embedding_data: 'data/example_data/llm_candidates/default_llm_embeddings.json'
+
+model_path:
+  load_model_path: 'saved_models/mlprouter/mlprouter.pkl'
+
+
+metric:
+  weights:
+    performance: 1
+    cost: 0
+    llm_judge: 0
+
+hparam:
+  hidden_layer_sizes: [128, 64]   # Number of neurons in each hidden layer; deeper or wider networks capture more complexity
+  activation: "relu"              # Activation function for the hidden layer ('identity', 'logistic', 'tanh', 'relu')
+  solver: "adam"                  # Optimization algorithm ('lbfgs' for small data, 'adam' for large data, 'sgd' for fine control)
+  alpha: 0.0001                   # L2 regularization term to prevent overfitting
+  learning_rate: "adaptive"       # How learning rate changes ('constant', 'invscaling', or 'adaptive')
+  learning_rate_init: 0.001       # Initial learning rate for weight updates
+  max_iter: 500                   # Maximum number of training iterations
+  random_state: 42                # Ensures reproducibility
+
+
+
+
