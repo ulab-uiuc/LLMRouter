@@ -5,17 +5,29 @@
 # Data paths and preprocessing
 data:
   # Training data
-  train_input_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/router_train_data_nq.json"
-  train_output_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/output/nq_train.json"
+  train_input_path: "./data/routerdc/router_train_data_nq.json"
+  train_output_path: "./data/routerdc/output/nq_train.json"
 
   # Test data
-  test_input_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/final_test_nq_split.json"
-  test_output_path: "/HOME/sysu_grwang/sysu_grwang_1/HDD_POOL/lx/llm_code/router/LLMRouter/llmrouter/data/routerdc/output/nq_test.json"
+  test_input_path: "./data/routerdc/router_test_data_nq.jsonl"
+  test_output_path: "./data/routerdc/output/nq_test.json"
 
   # Data preprocessing
   n_clusters: 3  # Number of clusters for training data
   max_test_samples: 500  # Max samples for test set (null for all)
   skip_existing: true  # Skip if preprocessed data already exists
+  
+  # Data conversion file names (if input files don't exist, will convert from default_data)
+  data_conversion:
+    default_data_dir: "./data/default_data"
+    input_files:
+      test: "default_routing_test_data.jsonl"
+      train: "default_routing_train_data.jsonl"
+    output_files:
+      test: "router_test_data_nq.jsonl"
+      train: "router_train_data_nq.json"
+      merged: "train_test_nq_split.jsonl"
+    output_dir: "./data/routerdc"
 
 # Model configuration
 model:

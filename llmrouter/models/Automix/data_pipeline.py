@@ -59,14 +59,13 @@ def init_providers() -> None:
 
         os.environ.pop("HF_ENDPOINT", None)
         hf_token = _env_or(
-            "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", "HF_TOKEN", "HUGGINGFACE_TOKEN"
+            "your_hf_token", "HF_TOKEN", "HUGGINGFACE_TOKEN"
         )
         login(token=hf_token)
 
         openai.api_key = _env_or(
             (
-                "nvapi-KcHihipC9fbf-PVt25TwGChAkIoMvs0XKT3lddT3E"
-                "ZQkDjgFncR_0Q52dvZTsdz0"
+                "your_api_key"
             ),
             "OPENAI_API_KEY",
             "NVIDIA_API_KEY",

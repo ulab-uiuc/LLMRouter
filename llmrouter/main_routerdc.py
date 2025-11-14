@@ -19,6 +19,7 @@ Usage:
 import argparse
 import os
 import random
+import shutil
 import sys
 
 import numpy as np
@@ -39,6 +40,11 @@ from llmrouter.models.RouterDC import (
     RouterDCTrainer,
     RouterDataset,
     prepare_routerdc_data,
+)
+from llmrouter.utils.data_convert import (
+    convert_data,
+    convert_train_data,
+    merge_train_test,
 )
 
 
@@ -107,6 +113,105 @@ def merge_config_with_args(config: dict, args: argparse.Namespace) -> dict:
     return config
 
 
+def convert_default_data(config: dict, script_dir: str) -> tuple:
+    """
+    Convert default_data to required format
+    
+    Args:
+        config: Configuration dictionary containing data_conversion settings
+        script_dir: Script directory for resolving relative paths
+    
+    Returns:
+        Tuple of (train_input_path, test_input_path)
+    """
+    data_cfg = config['data']
+    conv_cfg = data_cfg.get('data_conversion', {})
+    
+    if not conv_cfg:
+        raise ValueError("data_conversion configuration not found in config")
+    
+    output_dir = conv_cfg.get('output_dir', './data/routerdc')
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.join(script_dir, output_dir)
+    
+    default_data_dir = conv_cfg['default_data_dir']
+    if not os.path.isabs(default_data_dir):
+        default_data_dir = os.path.join(script_dir, default_data_dir)
+    
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Get file names from config
+    input_files = conv_cfg['input_files']
+    output_files = conv_cfg['output_files']
+    
+    # Define paths
+    test_input = os.path.join(default_data_dir, input_files['test'])
+    train_input = os.path.join(default_data_dir, input_files['train'])
+    test_output = os.path.join(output_dir, output_files['test'])
+    train_output = os.path.join(output_dir, output_files['train'])
+    merged_output = os.path.join(output_dir, output_files['merged'])
+    
+    # Final paths (matching config expectations)
+    train_final_path = train_output
+    test_final_path = merged_output
+    
+    # Check if converted files already exist
+    if os.path.exists(train_final_path) and os.path.exists(test_final_path):
+        print(f"Converted data already exists")
+        return train_final_path, test_final_path
+    
+    # Convert test data
+    if os.path.exists(test_input):
+        print(f"Converting test data: {test_input} -> {test_output}")
+        convert_data(
+            input_file=test_input,
+            output_file=test_output,
+            use_llm=False,
+        )
+    else:
+        print(f"Warning: Test data file not found: {test_input}")
+        test_output = None
+    
+    # Convert train data
+    if os.path.exists(train_input):
+        print(f"Converting train data: {train_input} -> {train_output}")
+        convert_train_data(
+            input_file=train_input,
+            output_file=train_output,
+        )
+    else:
+        print(f"Warning: Train data file not found: {train_input}")
+        train_output = None
+    
+    # Merge data (for test set)
+    if test_output and os.path.exists(test_output):
+        # Use merged output as final test path
+        if not os.path.exists(merged_output):
+            # If we have train output, merge them
+            if train_output and os.path.exists(train_output):
+                print(f"Merging data: {test_output} + {train_output} -> {merged_output}")
+                merge_train_test(
+                    test_file=test_output,
+                    train_file=train_output,
+                    output_file=merged_output,
+                )
+            else:
+                # Just copy test output to merged output
+                shutil.copy2(test_output, merged_output)
+        test_final_path = merged_output
+    else:
+        test_final_path = None
+    
+    # Train final path is the train_output
+    train_final_path = train_output if train_output and os.path.exists(train_output) else None
+    
+    if not train_final_path or not test_final_path:
+        raise FileNotFoundError("Failed to convert data files. Please check input files exist.")
+    
+    return train_final_path, test_final_path
+
+
 def preprocess_data(config: dict):
     """
     Run data preprocessing pipeline.
@@ -115,16 +220,51 @@ def preprocess_data(config: dict):
         config (dict): Configuration dictionary
     """
     data_cfg = config['data']
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
     print("\n" + "=" * config['display']['separator_width'])
     print("Data Preprocessing")
     print("=" * config['display']['separator_width'])
 
+    # Handle relative paths
+    train_input_path = data_cfg['train_input_path']
+    if not os.path.isabs(train_input_path):
+        train_input_path = os.path.join(script_dir, train_input_path)
+    
+    test_input_path = data_cfg.get('test_input_path')
+    if test_input_path and not os.path.isabs(test_input_path):
+        test_input_path = os.path.join(script_dir, test_input_path)
+    
+    train_output_path = data_cfg['train_output_path']
+    if not os.path.isabs(train_output_path):
+        train_output_path = os.path.join(script_dir, train_output_path)
+    
+    test_output_path = data_cfg.get('test_output_path')
+    if test_output_path and not os.path.isabs(test_output_path):
+        test_output_path = os.path.join(script_dir, test_output_path)
+    
+    # Convert from default_data if input files don't exist
+    if not os.path.exists(train_input_path) or (test_input_path and not os.path.exists(test_input_path)):
+        print("\n[Step 0] Converting default_data to required format...")
+        print("-" * config['display']['separator_width'])
+        try:
+            converted_train, converted_test = convert_default_data(config, script_dir)
+            if not os.path.exists(train_input_path):
+                train_input_path = converted_train
+                print(f"Using converted train data: {train_input_path}")
+            if test_input_path and not os.path.exists(test_input_path):
+                test_input_path = converted_test
+                print(f"Using converted test data: {test_input_path}")
+        except Exception as e:
+            print(f"Error converting data: {e}")
+            print("Please ensure data files exist or run data preparation pipeline first")
+            raise
+
     prepare_routerdc_data(
-        train_input_path=data_cfg['train_input_path'],
-        train_output_path=data_cfg['train_output_path'],
-        test_input_path=data_cfg.get('test_input_path'),
-        test_output_path=data_cfg.get('test_output_path'),
+        train_input_path=train_input_path,
+        train_output_path=train_output_path,
+        test_input_path=test_input_path,
+        test_output_path=test_output_path,
         n_clusters=data_cfg['n_clusters'],
         max_test_samples=data_cfg.get('max_test_samples'),
         api_key=config.get('api', {}).get('nvidia_api_key'),
@@ -180,12 +320,17 @@ def train_from_config(config: dict):
     # ======================================================================
     print(f"\n[2/6] Preparing datasets...")
 
-    # Load training data
+    # Handle relative paths
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
     train_data_path = data_cfg['train_output_path']
+    if not os.path.isabs(train_data_path):
+        train_data_path = os.path.join(script_dir, train_data_path)
+    
     if not os.path.exists(train_data_path):
         raise FileNotFoundError(
             f"Training data not found: {train_data_path}\n"
-            f"Please run data preprocessing first: python main_routerdc.py --config {args.config} --preprocess_data"
+            f"Please run data preprocessing first: python main_routerdc.py --config <config_path> --preprocess_data"
         )
 
     train_dataset = RouterDataset(
@@ -200,6 +345,9 @@ def train_from_config(config: dict):
     # Load test data
     test_datasets = []
     test_data_path = data_cfg.get('test_output_path')
+    
+    if test_data_path and not os.path.isabs(test_data_path):
+        test_data_path = os.path.join(script_dir, test_data_path)
 
     if test_data_path and os.path.exists(test_data_path):
         test_dataset = RouterDataset(
@@ -216,6 +364,8 @@ def train_from_config(config: dict):
     additional_test_types = data_cfg.get('additional_test_types', [])
 
     for i, (test_path, data_type) in enumerate(zip(additional_test_paths, additional_test_types)):
+        if not os.path.isabs(test_path):
+            test_path = os.path.join(script_dir, test_path)
         if os.path.exists(test_path):
             dataset = RouterDataset(data_path=test_path, data_type=data_type, dataset_id=i+1)
             dataset.register_tokenizer(tokenizer)

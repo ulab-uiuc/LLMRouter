@@ -33,6 +33,11 @@ from llmrouter.models.Automix import (
     SelfConsistency,
     prepare_automix_data,
 )
+from llmrouter.utils.data_convert import (
+    convert_data,
+    convert_train_data,
+    merge_train_test,
+)
 
 
 def load_config(config_path: str = None) -> dict:
@@ -86,6 +91,83 @@ def get_routing_method(method_name: str, num_bins: int):
     return method_map[method_name](num_bins=num_bins)
 
 
+def convert_default_data(config: dict, script_dir: str) -> str:
+    """
+    Convert default_data to required format
+    
+    Args:
+        config: Configuration dictionary containing data_conversion settings
+        script_dir: Script directory for resolving relative paths
+    
+    Returns:
+        Path to merged data file
+    """
+    conv_cfg = config["real_data"]["data_conversion"]
+    output_dir = config["real_data"]["output_dir"]
+    
+    # Handle relative paths
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.join(script_dir, output_dir)
+    
+    default_data_dir = conv_cfg["default_data_dir"]
+    if not os.path.isabs(default_data_dir):
+        default_data_dir = os.path.join(script_dir, default_data_dir)
+    
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Get file names from config
+    input_files = conv_cfg["input_files"]
+    output_files = conv_cfg["output_files"]
+    
+    # Define paths
+    test_input = os.path.join(default_data_dir, input_files["test"])
+    train_input = os.path.join(default_data_dir, input_files["train"])
+    test_output = os.path.join(output_dir, output_files["test"])
+    train_output = os.path.join(output_dir, output_files["train"])
+    merged_output = os.path.join(output_dir, output_files["merged"])
+    
+    # Check if merged file already exists
+    if os.path.exists(merged_output):
+        print(f"Converted data already exists: {merged_output}")
+        return merged_output
+    
+    # Convert test data
+    if os.path.exists(test_input):
+        print(f"Converting test data: {test_input} -> {test_output}")
+        convert_data(
+            input_file=test_input,
+            output_file=test_output,
+            use_llm=False,
+        )
+    else:
+        print(f"Warning: Test data file not found: {test_input}")
+        test_output = None
+    
+    # Convert train data
+    if os.path.exists(train_input):
+        print(f"Converting train data: {train_input} -> {train_output}")
+        convert_train_data(
+            input_file=train_input,
+            output_file=train_output,
+        )
+    else:
+        print(f"Warning: Train data file not found: {train_input}")
+        train_output = None
+    
+    # Merge data
+    if test_output and train_output and os.path.exists(test_output) and os.path.exists(train_output):
+        print(f"Merging data: {test_output} + {train_output} -> {merged_output}")
+        merge_train_test(
+            test_file=test_output,
+            train_file=train_output,
+            output_file=merged_output,
+        )
+        return merged_output
+    else:
+        raise FileNotFoundError("Failed to convert data files. Please check input files exist.")
+
+
 def train_and_evaluate(config: dict):
     """
     Train and evaluate using real data
@@ -103,8 +185,28 @@ def train_and_evaluate(config: dict):
     print("=" * sep_width)
 
     # Get paths from configuration
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Handle relative paths
     data_path = cfg["data_path"]
+    if not os.path.isabs(data_path):
+        data_path = os.path.join(script_dir, data_path)
+    
     output_dir = cfg["output_dir"]
+    if not os.path.isabs(output_dir):
+        output_dir = os.path.join(script_dir, output_dir)
+    
+    # If data_path doesn't exist, try to convert from default_data
+    if not os.path.exists(data_path):
+        print(f"\nStep 0: Convert default_data to required format")
+        print("-" * sep_width)
+        try:
+            data_path = convert_default_data(config, script_dir)
+            print(f"Data conversion completed: {data_path}")
+        except Exception as e:
+            print(f"Error converting data: {e}")
+            print(f"Please ensure data files exist or run data preparation pipeline first")
+            return
 
     # Check if data file exists
     if not os.path.exists(data_path):

@@ -5,8 +5,20 @@
 # Real data example configuration
 real_data:
   # Data path configuration
+  # If data_path doesn't exist, will automatically convert from default_data
   data_path: "./data/nq/train_test_nq_split.jsonl"
   output_dir: "./data/nq"
+  
+  # Data conversion file names
+  data_conversion:
+    default_data_dir: "./data/default_data"
+    input_files:
+      test: "default_routing_test_data.jsonl"
+      train: "default_routing_train_data.jsonl"
+    output_files:
+      test: "router_test_data_nq.jsonl"
+      train: "router_train_data_nq.json"
+      merged: "train_test_nq_split.jsonl"
 
   # Model configuration
   engine_small: "meta/llama-3.1-8b-instruct"
