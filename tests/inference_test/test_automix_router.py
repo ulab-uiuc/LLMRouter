@@ -3,7 +3,6 @@ import os
 
 import pandas as pd
 
-from llmrouter.models.Automix.main_automix import load_config
 from llmrouter.models.Automix import (
     AutomixModel,
     AutomixRouter,
@@ -11,23 +10,22 @@ from llmrouter.models.Automix import (
     SelfConsistency,
     Threshold,
 )
+from llmrouter.models.Automix.main_automix import load_config
 
 
-def build_method(method_name: str, num_bins: int):
+def build_method(name: str, num_bins: int):
     mapping = {
+        "POMDP": POMDP,
         "Threshold": Threshold,
         "SelfConsistency": SelfConsistency,
-        "POMDP": POMDP,
     }
-    if method_name not in mapping:
-        raise ValueError(f"Unsupported routing method: {method_name}")
-    return mapping[method_name](num_bins=num_bins)
+    if name not in mapping:
+        raise ValueError(f"Unsupported Automix routing method: {name}")
+    return mapping[name](num_bins=num_bins)
 
 
 def main():
-    project_root = os.path.dirname(
-        os.path.dirname(os.path.dirname(__file__))
-    )
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     default_yaml = os.path.join(
         project_root, "configs", "model_config_test", "automix_config.yaml"
     )
@@ -43,24 +41,17 @@ def main():
     )
     args = parser.parse_args()
 
-    yaml_path = args.yaml_path
-    if not os.path.isabs(yaml_path):
-        yaml_path = os.path.join(project_root, yaml_path)
+    if not os.path.exists(args.yaml_path):
+        raise FileNotFoundError(f"YAML file not found: {args.yaml_path}")
 
-    if not os.path.exists(yaml_path):
-        raise FileNotFoundError(f"YAML file not found: {yaml_path}")
-
-    print(f"📄 Using YAML file: {yaml_path}")
-    config = load_config(yaml_path)
+    print(f"📄 Using YAML file: {args.yaml_path}")
+    config = load_config(args.yaml_path)
     print("✅ Configuration loaded successfully!")
 
     cfg = config["real_data"]
     data_path = cfg["data_path"]
     if not os.path.isabs(data_path):
         data_path = os.path.join(project_root, data_path)
-
-    if not os.path.exists(data_path):
-        raise FileNotFoundError(f"Automix data file not found: {data_path}")
 
     df = pd.read_json(data_path, lines=True, orient="records")
     train_df = df[df["split"] == "train"].copy()
