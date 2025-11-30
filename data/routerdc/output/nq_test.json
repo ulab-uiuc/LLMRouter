@@ -1,0 +1,18 @@
+[
+  {
+    "question": "Who painted the Mona Lisa?",
+    "scores": {
+      "meta/llama-3.1-8b-instruct": 0.3,
+      "meta/llama-3.1-70b-instruct": 0.96,
+      "qwen/qwen2.5-7b-instruct": 0.5
+    }
+  },
+  {
+    "question": "What gas do plants absorb?",
+    "scores": {
+      "meta/llama-3.1-8b-instruct": 0.82,
+      "meta/llama-3.1-70b-instruct": 0.9,
+      "qwen/qwen2.5-7b-instruct": 0.85
+    }
+  }
+]

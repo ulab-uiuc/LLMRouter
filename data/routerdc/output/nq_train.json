@@ -1,0 +1,38 @@
+[
+  {
+    "question": "Who wrote the novel 1984?",
+    "scores": {
+      "meta/llama-3.1-8b-instruct": 0.6,
+      "meta/llama-3.1-70b-instruct": 0.95,
+      "qwen/qwen2.5-7b-instruct": 0.7
+    },
+    "cluster_id": 0
+  },
+  {
+    "question": "What is the capital of France?",
+    "scores": {
+      "meta/llama-3.1-8b-instruct": 0.9,
+      "meta/llama-3.1-70b-instruct": 0.92,
+      "qwen/qwen2.5-7b-instruct": 0.88
+    },
+    "cluster_id": 0
+  },
+  {
+    "question": "Solve 12 * 11.",
+    "scores": {
+      "meta/llama-3.1-8b-instruct": 0.2,
+      "meta/llama-3.1-70b-instruct": 1.0,
+      "qwen/qwen2.5-7b-instruct": 0.5
+    },
+    "cluster_id": 1
+  },
+  {
+    "question": "Translate 'hola' to English.",
+    "scores": {
+      "meta/llama-3.1-8b-instruct": 0.4,
+      "meta/llama-3.1-70b-instruct": 0.85,
+      "qwen/qwen2.5-7b-instruct": 0.8
+    },
+    "cluster_id": 1
+  }
+]

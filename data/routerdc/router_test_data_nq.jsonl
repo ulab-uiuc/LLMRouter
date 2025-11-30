@@ -1,0 +1,2 @@
+{"query": "Who painted the Mona Lisa?", "llm_name_list": ["meta/llama-3.1-8b-instruct", "meta/llama-3.1-70b-instruct", "qwen/qwen2.5-7b-instruct"], "perf_list": [0.3, 0.96, 0.5]}
+{"query": "What gas do plants absorb?", "llm_name_list": ["meta/llama-3.1-8b-instruct", "meta/llama-3.1-70b-instruct", "qwen/qwen2.5-7b-instruct"], "perf_list": [0.82, 0.9, 0.85]}

@@ -18,6 +18,8 @@ from .mfrouter import MFRouterTrainer
 
 from .elorouter import EloRouter
 from .elorouter import EloRouterTrainer
+from .Automix import AutomixRouter, AutomixRouterTrainer, AutomixModel
+from .RouterDC import RouterModule, RouterDCRouter, RouterDCTrainer
 
 
 __all__ = [
@@ -40,5 +42,12 @@ __all__ = [
 
     "EloRouter",
     "EloRouterTrainer",
-]
 
+    "AutomixRouter",
+    "AutomixRouterTrainer",
+    "AutomixModel",
+
+    "RouterModule",
+    "RouterDCRouter",
+    "RouterDCTrainer",
+]

@@ -1,0 +1,77 @@
+# RouterDC Configuration for NQ Dataset
+# ======================================
+# Configuration for training RouterDC on Natural Questions (NQ) dataset
+
+# Data paths and preprocessing
+data:
+  # Training data
+  train_input_path: "./data/routerdc/router_train_data_nq.json"
+  train_output_path: "./data/routerdc/output/nq_train.json"
+
+  # Test data
+  test_input_path: "./data/routerdc/router_test_data_nq.jsonl"
+  test_output_path: "./data/routerdc/output/nq_test.json"
+
+  # Data preprocessing
+  n_clusters: 2  # Number of clusters for training data
+  max_test_samples: 50  # Max samples for test set (null for all)
+  skip_existing: true  # Skip if preprocessed data already exists
+  
+  # Data conversion file names (if input files don't exist, will convert from default_data)
+  data_conversion:
+    default_data_dir: "./data/default_data"
+    input_files:
+      test: "default_routing_test_data.jsonl"
+      train: "default_routing_train_data.jsonl"
+    output_files:
+      test: "router_test_data_nq.jsonl"
+      train: "router_train_data_nq.json"
+      merged: "train_test_nq_split.jsonl"
+    output_dir: "./data/routerdc"
+
+# Model configuration
+model:
+  backbone: "routerdc-tiny"
+  hidden_state_dim: 32
+  num_llms: 3  # Number of LLMs to route between
+  similarity_function: "cos"  # "cos" or "inner"
+
+# Training hyperparameters
+training:
+  batch_size: 2
+  training_steps: 10
+  learning_rate: 5.0e-4
+
+  # Loss configuration
+  top_k: 1  # Top-k LLMs for positive samples
+  last_k: 1  # Last-k LLMs for negative samples
+  temperature: 1.0
+
+  # Loss weights
+  sample_loss_weight: 0.0  # Weight for sample-sample contrastive loss
+  cluster_loss_weight: 0.5  # Weight for cluster contrastive loss
+  H: 2  # Number of negative samples
+
+  # Optimization
+  gradient_accumulation: 1
+
+  # Device
+  device: "cpu"
+  seed: 1
+
+# Evaluation
+evaluation:
+  eval_steps: 5  # Evaluate every N steps
+  test_data_type: "probability"  # "probability" or "multi_attempt"
+
+# Output
+output:
+  save_path: "./logs/routerdc_sample"
+  save_training_log: true
+  save_config: true
+
+# Display settings
+display:
+  separator_width: 70
+  show_progress: true
+  verbose: true
