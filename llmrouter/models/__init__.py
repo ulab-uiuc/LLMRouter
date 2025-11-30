@@ -3,6 +3,7 @@ from .base_trainer import BaseTrainer
 
 from .smallest_llm import SmallestLLM
 from .largest_llm import LargestLLM
+
 from .knnrouter import KNNRouter
 from .knnrouter import KNNRouterTrainer
 
@@ -12,10 +13,11 @@ from .svmrouter import SVMRouterTrainer
 from .mlprouter import MLPRouter
 from .mlprouter import MLPTrainer
 
-from .knnmultiroundrouter import KNNMultiRoundRouter
-from .knnmultiroundrouter import KNNMultiRoundRouterTrainer
+from .mfrouter import MFRouter
+from .mfrouter import MFRouterTrainer
 
-from .llmmultiroundrouter import LLMMultiRoundRouter
+from .elorouter import EloRouter
+from .elorouter import EloRouterTrainer
 
 
 __all__ = [
@@ -23,13 +25,20 @@ __all__ = [
     "BaseTrainer",
     "SmallestLLM",
     "LargestLLM",
+
     "KNNRouter",
     "KNNRouterTrainer",
+
     "SVMRouter",
     "SVMRouterTrainer",
+
     "MLPRouter",
     "MLPTrainer",
-    "KNNMultiRoundRouter",
-    "KNNMultiRoundRouterTrainer",
-    "LLMMultiRoundRouter",
+
+    "MFRouter",
+    "MFRouterTrainer",
+
+    "EloRouter",
+    "EloRouterTrainer",
 ]
+

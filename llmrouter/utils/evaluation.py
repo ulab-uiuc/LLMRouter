@@ -13,29 +13,6 @@ from sklearn.preprocessing import StandardScaler
 from bert_score import score
 import litellm
 
-# Initialize the sentence transformer model
-model = SentenceTransformer('all-MiniLM-L6-v2')
-
-# Longformer model initialization (optional - only loaded when needed)
-_model_long = None
-_tokenizer = None
-_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-def _get_longformer_model():
-    """Lazy load Longformer model only when needed"""
-    global _model_long, _tokenizer
-    if _model_long is None:
-        try:
-            from transformers import LongformerModel, LongformerTokenizer
-            MODEL_NAME = "allenai/longformer-base-4096"
-            _tokenizer = LongformerTokenizer.from_pretrained(MODEL_NAME)
-            _model_long = LongformerModel.from_pretrained(MODEL_NAME)
-            _model_long = _model_long.to(_device)
-        except Exception as e:
-            print(f"Warning: Could not load Longformer model: {e}")
-            _model_long = None
-            _tokenizer = None
-    return _model_long, _tokenizer
 
 # File I/O functions
 def loadjson(filename: str) -> dict:
@@ -231,92 +208,6 @@ def get_bert_score(generate_response: List[str], ground_truth: List[str]) -> flo
     return np.array(F_l).mean()
 
 
-# Embedding and dimensionality reduction
-def reduce_embedding_dim(embed: np.ndarray, dim: int = 50) -> np.ndarray:
-    """
-    Reduce dimensionality of embeddings using PCA.
-
-    Args:
-        embed: Embedding vectors
-        dim: Target dimension
-
-    Returns:
-        Reduced embeddings
-    """
-    pca = PCA(n_components=dim)
-    reduced_embeddings = pca.fit_transform(embed)
-    return reduced_embeddings
-
-
-def get_longformer_representation(text):
-    """
-    Get representations of long text using Longformer on CUDA:0 device
-
-    Args:
-        text (str): Long text to be represented
-
-    Returns:
-        dict: Contains different types of representations (last_hidden_state, pooled_output, all_hidden_states)
-    """
-    model_long, tokenizer = _get_longformer_model()
-    if model_long is None or tokenizer is None:
-        print("Warning: Longformer model not available, returning empty tensor")
-        return torch.zeros(768)  # Return empty tensor with expected size
-
-    # Set global attention mask - this is a key feature of Longformer
-    # We set the [CLS] token to have global attention so it can attend to the entire sequence
-    inputs = tokenizer(text, return_tensors="pt", max_length=4096, truncation=True)
-
-    # 将输入移动到指定设备
-    inputs = {k: v.to(_device) for k, v in inputs.items()}
-
-    # Create global attention mask - set the first token ([CLS]) to have global attention
-    global_attention_mask = torch.zeros(
-        inputs["input_ids"].shape,
-        dtype=torch.long,
-        device=_device  # 直接在创建时指定设备
-    )
-    # Set the CLS token to have global attention
-    global_attention_mask[:, 0] = 1
-
-    # Get model outputs
-    with torch.no_grad():
-        outputs = model_long(
-            input_ids=inputs["input_ids"],
-            attention_mask=inputs["attention_mask"],
-            global_attention_mask=global_attention_mask,
-            output_hidden_states=True  # Output all hidden states
-        )
-
-    # Get different types of representations
-    representations = {
-        # Last layer hidden states (batch_size, sequence_length, hidden_size)
-        "last_hidden_state": outputs.last_hidden_state,
-
-        # [CLS] token representation (commonly used for classification tasks)
-        "cls_representation": outputs.last_hidden_state[0, 0, :],
-
-        # All layer hidden states (if needed)
-        "all_hidden_states": outputs.hidden_states if hasattr(outputs, "hidden_states") else None
-    }
-
-    # 返回的是张量，保持在GPU上
-    return representations["cls_representation"]
-
-
-def get_embedding(instructions: List[str]) -> np.ndarray:
-    """
-    Get embeddings for a list of texts and optionally reduce dimensions.
-
-    Args:
-        instructions: List of texts to embed
-        dim: Target dimension for embeddings
-
-    Returns:
-        Numpy array of embeddings
-    """
-    emb_list = model.encode(instructions)
-    return emb_list
 
 # this is the code used to evluates generated code against test case 
 def evaluate_code(generated_code, test_cases, timeout=5):

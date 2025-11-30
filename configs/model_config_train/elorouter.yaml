@@ -1,0 +1,27 @@
+# Config parameters for elorouter training:
+
+
+data_path:
+  query_data_train: 'data/example_data/query_data/default_query_train.jsonl'
+  query_data_test: 'data/example_data/query_data/default_query_test.jsonl'
+  query_embedding_data: 'data/example_data/routing_data/query_embeddings_longformer.pt'
+  routing_data_train: 'data/example_data/routing_data/default_routing_train_data.jsonl'
+  routing_data_test: 'data/example_data/routing_data/default_routing_test_data.jsonl'
+  llm_data: 'data/example_data/llm_candidates/default_llm.json'
+  llm_embedding_data: 'data/example_data/llm_candidates/default_llm_embeddings.json'
+
+model_path:
+  ini_model_path: ''
+  save_model_path: 'saved_models/elorouter/elorouter.pkl'
+
+
+metric:
+  weights:
+    performance: 1
+    cost: 0
+    llm_judge: 0
+
+
+
+
+
