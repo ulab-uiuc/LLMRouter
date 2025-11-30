@@ -1,18 +1,18 @@
 import argparse
 import os
 
-import torch
 from torch.utils.data import DataLoader
 
-from llmrouter.models.RouterDC import RouterDCRouter, RouterDataset, RouterModule
-from llmrouter.models.RouterDC.main_routerdc import load_config
+from llmrouter.models import RouterDCRouter, RouterDataset
 from llmrouter.models.RouterDC.utils import load_tokenizer_and_backbone
 
 
+def _resolve_path(path: str, root: str) -> str:
+    return path if os.path.isabs(path) else os.path.join(root, path)
+
+
 def main():
-    project_root = os.path.dirname(
-        os.path.dirname(os.path.dirname(__file__))
-    )
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     default_yaml = os.path.join(
         project_root, "configs", "model_config_test", "routerdc_nq.yaml"
     )
@@ -28,56 +28,39 @@ def main():
     )
     args = parser.parse_args()
 
-    yaml_path = args.yaml_path
-    if not os.path.isabs(yaml_path):
-        yaml_path = os.path.join(project_root, yaml_path)
+    if not os.path.exists(args.yaml_path):
+        raise FileNotFoundError(f"YAML file not found: {args.yaml_path}")
 
-    if not os.path.exists(yaml_path):
-        raise FileNotFoundError(f"YAML file not found: {yaml_path}")
+    print(f"📄 Using YAML file: {args.yaml_path}")
+    router = RouterDCRouter(args.yaml_path)
+    print("✅ RouterDCRouter initialized successfully!")
 
-    print(f"📄 Using YAML file: {yaml_path}")
-    config = load_config(yaml_path)
-    print("✅ Configuration loaded successfully!")
+    cfg = router.cfg or {}
+    data_cfg = cfg.get("data", {})
+    eval_cfg = cfg.get("evaluation", {})
+    train_data_path = _resolve_path(data_cfg["train_output_path"], project_root)
+    data_type = eval_cfg.get("test_data_type", "probability")
 
-    data_cfg = config["data"]
-    eval_cfg = config["evaluation"]
-
-    train_data_path = data_cfg["train_output_path"]
-    if not os.path.isabs(train_data_path):
-        train_data_path = os.path.join(project_root, train_data_path)
-
-    if not os.path.exists(train_data_path):
-        raise FileNotFoundError(
-            f"Training data not found: {train_data_path}. "
-            "Run the RouterDC preprocessing pipeline first."
-        )
-
-    tokenizer, backbone, hidden_dim = load_tokenizer_and_backbone(config["model"])
     dataset = RouterDataset(
         data_path=train_data_path,
-        data_type=eval_cfg["test_data_type"],
+        data_type=data_type,
         dataset_id=0,
     )
+
+    tokenizer = getattr(router.model, "tokenizer", None)
+    if tokenizer is None:
+        tokenizer, _, _ = load_tokenizer_and_backbone(cfg["model"])
     dataset.register_tokenizer(tokenizer)
 
-    node_size = len(dataset.router_node)
-    model = RouterModule(
-        backbone=backbone,
-        hidden_state_dim=hidden_dim,
-        node_size=node_size,
-        similarity_function=config["model"]["similarity_function"],
-    )
-    router = RouterDCRouter(model=model)
-
-    loader = DataLoader(dataset, batch_size=2, shuffle=False)
+    loader = DataLoader(dataset, batch_size=1, shuffle=False)
     inputs, scores, dataset_ids, cluster_ids = next(iter(loader))
 
     batch = {
         "input_ids": inputs["input_ids"],
         "attention_mask": inputs["attention_mask"],
-        "temperature": config["training"]["temperature"],
+        "temperature": cfg.get("training", {}).get("temperature", 1.0),
         "true_scores": scores,
-        "data_type": eval_cfg["test_data_type"],
+        "data_type": data_type,
     }
 
     outputs = router(batch)

@@ -10,9 +10,14 @@ Original source: RouterDC/train_router_mdeberta.py
 Adapted for LLMRouter framework while preserving all original logic.
 """
 
+import json
+import os
 import random
+import yaml
 import torch
 import torch.nn as nn
+
+from .utils import load_tokenizer_and_backbone
 
 
 class RouterModule(nn.Module):
@@ -38,7 +43,8 @@ class RouterModule(nn.Module):
         backbone: nn.Module,
         hidden_state_dim: int = 768,
         node_size: int = 3,
-        similarity_function: str = "cos"
+        similarity_function: str = "cos",
+        tokenizer=None,
     ):
         """
         Initialize RouterModule.
@@ -60,6 +66,7 @@ class RouterModule(nn.Module):
         self.node_size = node_size
         self.embeddings = nn.Embedding(node_size, hidden_state_dim)
         self.similarity_function = similarity_function
+        self.tokenizer = tokenizer
 
         # Initialize embeddings with normal distribution
         std_dev = 0.78
@@ -115,6 +122,46 @@ class RouterModule(nn.Module):
         x = self.compute_similarity(hidden_state, self.embeddings.weight)
         x = x / t
         return x, hidden_state
+
+    @classmethod
+    def from_yaml(cls, yaml_path: str):
+        """
+        Build a RouterModule from a YAML configuration file.
+        """
+        if not os.path.exists(yaml_path):
+            raise FileNotFoundError(f"RouterDC config not found: {yaml_path}")
+
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+        train_output_path = config["data"]["train_output_path"]
+        if not os.path.isabs(train_output_path):
+            train_output_path = os.path.join(project_root, train_output_path)
+
+        if not os.path.exists(train_output_path):
+            raise FileNotFoundError(
+                f"RouterDC training data not found: {train_output_path}. "
+                "Please run the data preprocessing pipeline first."
+            )
+
+        with open(train_output_path, "r", encoding="utf-8") as f:
+            train_data = json.load(f)
+
+        if not train_data:
+            raise ValueError(f"No samples found in {train_output_path}")
+
+        node_size = len(train_data[0]["scores"])
+        tokenizer, backbone, hidden_dim = load_tokenizer_and_backbone(config["model"])
+        hidden_state_dim = config["model"].get("hidden_state_dim", hidden_dim)
+
+        return cls(
+            backbone=backbone,
+            hidden_state_dim=hidden_state_dim,
+            node_size=node_size,
+            similarity_function=config["model"].get("similarity_function", "cos"),
+            tokenizer=tokenizer,
+        )
 
     def compute_sample_llm_loss(
         self,

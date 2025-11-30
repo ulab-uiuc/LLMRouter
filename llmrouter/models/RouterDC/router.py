@@ -13,6 +13,7 @@ Adapted for LLMRouter framework.
 import torch
 import torch.nn as nn
 from llmrouter.models.meta_router import MetaRouter
+from .model import RouterModule
 
 
 class RouterDCRouter(MetaRouter):
@@ -34,19 +35,22 @@ class RouterDCRouter(MetaRouter):
         - Provides compute_metrics() for evaluation
     """
 
-    def __init__(self, model: nn.Module, yaml_path: str | None = None, resources=None):
+    def __init__(self, model: nn.Module | str, yaml_path: str | None = None, resources=None):
         """
         Initialize RouterDCRouter.
 
         Args:
-            model (nn.Module):
-                Underlying RouterModule instance containing routing logic.
-                Should be an instance of RouterModule from model.py.
+            model (nn.Module | str):
+                RouterModule instance or path to a YAML config file.
             yaml_path (str | None):
-                Optional path to YAML config for this router.
+                Optional path to YAML config when providing a model instance.
             resources (Any, optional):
                 Additional shared resources (e.g., tokenizer, API clients).
         """
+        if isinstance(model, str):
+            yaml_path = model
+            model = RouterModule.from_yaml(model)
+
         super().__init__(model=model, yaml_path=yaml_path, resources=resources)
 
     def route(self, batch):
