@@ -116,6 +116,14 @@ extra:
       link: https://fosstodon.org/@squidfunk
     - icon: fontawesome/brands/x-twitter
       link: https://x.com/squidfunk
+  # llm_search:
+  #   enabled: true
+  #   api_endpoint: "http://localhost:8000"
+  # runllm:
+  #   assistant_id: "YOUR_ASSISTANT_ID_HERE"  # Get this from RunLLM dashboard
+  #   position: "bottom-right"  # Options: bottom-right, bottom-left, top-right, top-left
+  #   theme: "light"  # Options: light, dark, auto
+
 
 # Extensions
 markdown_extensions:
@@ -274,3 +282,10 @@ nav:
       - insiders/community-experts-program/index.md
   - Blog:
     - blog/index.md
+
+extra_javascript:
+    - "js/runllm-widget.js"
+
+# extra_css:
+#   - stylesheets/llm-search.css
+
