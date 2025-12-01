@@ -1,0 +1,34 @@
+# Config parameters for dcrouter testing:
+
+data_path:
+  query_data_train: 'data/default_data/default_routing_train_data.jsonl'
+  query_data_test: 'data/default_data/default_routing_test_data.jsonl'
+  routing_data_train: 'data/default_data/default_routing_train_data.jsonl'
+  routing_data_test: 'data/default_data/default_routing_test_data.jsonl'
+  preprocessed_dir: 'data/dcrouter_preprocessed'
+  
+model_path:
+  load_model_path: 'saved_models/dcrouter/dcrouter_model.pth'
+  backbone_model: 'microsoft/mdeberta-v3-base'
+
+# Model configuration
+model:
+  hidden_state_dim: 768
+  similarity_function: "cos"  # "cos" or "inner"
+
+# Inference settings
+inference:
+  batch_size: 64
+  temperature: 1.0
+  device: "cpu"
+
+# Data preprocessing
+data_preprocessing:
+  source_max_token_len: 512
+  target_max_token_len: 512
+
+metric:
+  weights:
+    performance: 1
+    cost: 0
+    llm_judge: 0

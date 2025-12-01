@@ -19,6 +19,9 @@ from .mfrouter import MFRouterTrainer
 from .elorouter import EloRouter
 from .elorouter import EloRouterTrainer
 
+from .dcrouter import DCRouter
+from .dcrouter import DCTrainer
+
 
 __all__ = [
     "MetaRouter",
@@ -40,5 +43,8 @@ __all__ = [
 
     "EloRouter",
     "EloRouterTrainer",
+
+    "DCRouter",
+    "DCTrainer",
 ]
 

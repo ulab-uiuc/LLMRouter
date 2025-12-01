@@ -1,0 +1,58 @@
+# Config parameters for dcrouter training:
+
+data_path:
+  query_data_train: 'data/default_data/default_routing_train_data.jsonl'
+  query_data_test: 'data/default_data/default_routing_test_data.jsonl'
+  routing_data_train: 'data/default_data/default_routing_train_data.jsonl'
+  routing_data_test: 'data/default_data/default_routing_test_data.jsonl'
+  preprocessed_dir: 'data/dcrouter_preprocessed'
+  
+model_path:
+  ini_model_path: ''
+  save_model_path: 'saved_models/dcrouter/dcrouter_model.pth'
+  backbone_model: 'microsoft/mdeberta-v3-base'
+
+# Model configuration
+model:
+  hidden_state_dim: 768
+  similarity_function: "cos"  # "cos" or "inner"
+
+# Training hyperparameters
+training:
+  batch_size: 32
+  training_steps: 500
+  learning_rate: 5.0e-5
+
+  # Loss configuration
+  top_k: 3  # Top-k LLMs for positive samples
+  last_k: 3  # Last-k LLMs for negative samples
+  temperature: 1.0
+
+  # Loss weights
+  sample_loss_weight: 0.0  # Weight for sample-sample contrastive loss
+  cluster_loss_weight: 1.0  # Weight for cluster contrastive loss
+  H: 3  # Number of negative samples
+
+  # Optimization
+  gradient_accumulation: 1
+
+  # Device
+  device: "cpu"
+  seed: 1
+
+# Evaluation
+evaluation:
+  eval_steps: 50  # Evaluate every N steps
+
+# Data preprocessing
+data_preprocessing:
+  n_clusters: 3  # Number of clusters for training data
+  max_test_samples: 500  # Max samples for test set (null for all)
+  source_max_token_len: 512
+  target_max_token_len: 512
+
+metric:
+  weights:
+    performance: 1
+    cost: 0
+    llm_judge: 0
