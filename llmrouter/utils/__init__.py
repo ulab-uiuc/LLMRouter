@@ -36,6 +36,7 @@ from .arena_conversation import (
 from .data_processing import process_final_data, generate_embeddings_for_data
 from .constants import TASK_DESCRIPTIONS, TASK_CATEGORIES, API_KEYS, HF_TOKEN, CASE_NUM
 from .setup import setup_environment
+from .api_calling import call_api
 
 # Import evaluation functions from evaluation.py
 from .evaluation import f1_score, exact_match_score, get_bert_score, evaluate_code, cem_score
@@ -56,5 +57,6 @@ __all__ = ["load_csv",
     'process_final_data', 'generate_embeddings_for_data',
     'TASK_DESCRIPTIONS', 'TASK_CATEGORIES', 'API_KEYS', 'HF_TOKEN', 'CASE_NUM',
     'setup_environment',
-    'f1_score', 'exact_match_score', 'get_bert_score', 'evaluate_code', 'cem_score'
+    'f1_score', 'exact_match_score', 'get_bert_score', 'evaluate_code', 'cem_score',
+    'call_api'
 ]
