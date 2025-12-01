@@ -29,7 +29,7 @@ def main():
     default_yaml = os.path.join(
         project_root, "configs", "model_config_test", "automix.yaml"
     )
-
+    
     parser = argparse.ArgumentParser(
         description="Automix inference smoke test."
     )
