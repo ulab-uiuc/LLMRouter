@@ -27,7 +27,7 @@ def build_method(name: str, num_bins: int):
 def main():
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     default_yaml = os.path.join(
-        project_root, "configs", "model_config_test", "automix_config.yaml"
+        project_root, "configs", "model_config_test", "automix.yaml"
     )
 
     parser = argparse.ArgumentParser(
@@ -48,15 +48,15 @@ def main():
     config = load_config(args.yaml_path)
     print("✅ Configuration loaded successfully!")
 
-    cfg = config["real_data"]
-    data_path = cfg["data_path"]
+    data_cfg = config["data_path"]
+    data_path = data_cfg.get("prepared_data", "data/automix/router_automix_llamapair_ver_outputs.jsonl")
     if not os.path.isabs(data_path):
         data_path = os.path.join(project_root, data_path)
 
     if not os.path.exists(data_path):
         print("⚠️ Automix data not found. Converting default data...")
         new_path = convert_default_data(config)
-        cfg["data_path"] = new_path
+        config["data_path"]["prepared_data"] = os.path.relpath(new_path, project_root)
         data_path = new_path
         print(f"✅ Converted default data to: {data_path}")
 
@@ -64,14 +64,15 @@ def main():
     train_df = df[df["split"] == "train"].copy()
     test_df = df[df["split"] == "test"].copy()
 
-    method = build_method(cfg["routing_method"], cfg["num_bins"])
+    hparam = config["hparam"]
+    method = build_method(hparam["routing_method"], hparam["num_bins"])
     model = AutomixModel(
         method=method,
-        slm_column=cfg["columns"]["slm"],
-        llm_column=cfg["columns"]["llm"],
-        verifier_column=cfg["columns"]["verifier"],
-        costs=[cfg["costs"]["small_model"], cfg["costs"]["large_model"]],
-        verifier_cost=cfg["costs"]["verifier"],
+        slm_column=hparam["columns"]["slm"],
+        llm_column=hparam["columns"]["llm"],
+        verifier_column=hparam["columns"]["verifier"],
+        costs=[hparam["costs"]["small_model"], hparam["costs"]["large_model"]],
+        verifier_cost=hparam["costs"]["verifier"],
         verbose=False,
     )
     model.train_routing(train_df)

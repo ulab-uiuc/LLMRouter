@@ -11,7 +11,7 @@ from llmrouter.models.Automix.main_automix import (
 def main():
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     default_yaml = os.path.join(
-        project_root, "configs", "model_config_test", "automix_config.yaml"
+        project_root, "configs", "model_config_train", "automix.yaml"
     )
 
     parser = argparse.ArgumentParser(
@@ -32,15 +32,15 @@ def main():
     config = load_config(args.yaml_path)
     print("✅ Configuration loaded successfully!")
 
-    cfg = config["real_data"]
-    data_path = cfg["data_path"]
+    data_cfg = config["data_path"]
+    data_path = data_cfg.get("prepared_data", "data/automix/router_automix_llamapair_ver_outputs.jsonl")
     if not os.path.isabs(data_path):
         data_path = os.path.join(project_root, data_path)
 
     if not os.path.exists(data_path):
         print("⚠️ Automix data not found. Converting default data...")
         new_path = convert_default_data(config)
-        cfg["data_path"] = new_path
+        config["data_path"]["prepared_data"] = os.path.relpath(new_path, project_root)
         data_path = new_path
         print(f"✅ Converted default data to: {data_path}")
 
