@@ -1,14 +1,11 @@
 import argparse
 import os
 
-from llmrouter.models.Automix.main_automix import (
-    load_config,
-    train_and_evaluate,
-    convert_default_data,
-)
+from llmrouter.models import AutomixRouter, AutomixRouterTrainer
 
 
 def main():
+    # Correct default path based on your folder structure
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     default_yaml = os.path.join(
         project_root, "configs", "model_config_train", "automix.yaml"
@@ -25,30 +22,20 @@ def main():
     )
     args = parser.parse_args()
 
+    # Verify file existence
     if not os.path.exists(args.yaml_path):
         raise FileNotFoundError(f"YAML file not found: {args.yaml_path}")
 
-    print(f"📄 Using YAML file: {args.yaml_path}")
-    config = load_config(args.yaml_path)
-    print("✅ Configuration loaded successfully!")
+    # Initialize the router (automatically handles data preparation)
+    print(f"Using YAML file: {args.yaml_path}")
+    router = AutomixRouter(args.yaml_path)
+    print("AutomixRouter initialized successfully!")
 
-    data_cfg = config["data_path"]
-    data_path = data_cfg.get("prepared_data", "data/automix/router_automix_llamapair_ver_outputs.jsonl")
-    if not os.path.isabs(data_path):
-        data_path = os.path.join(project_root, data_path)
-
-    if not os.path.exists(data_path):
-        print("⚠️ Automix data not found. Converting default data...")
-        new_path = convert_default_data(config)
-        config["data_path"]["prepared_data"] = os.path.relpath(new_path, project_root)
-        data_path = new_path
-        print(f"✅ Converted default data to: {data_path}")
-
-    print("\n🚀 Starting Automix router training and evaluation...")
-    results = train_and_evaluate(config)
-    if results is None:
-        raise RuntimeError("Automix training did not complete successfully.")
-    print("\n✅ Automix router train_test completed successfully!")
+    # Run training
+    trainer = AutomixRouterTrainer(router=router)
+    print("Starting Automix router training...")
+    trainer.train()
+    print("Training completed successfully!")
 
 
 if __name__ == "__main__":
