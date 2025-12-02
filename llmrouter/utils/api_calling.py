@@ -11,9 +11,30 @@ import time
 from typing import Dict, List, Union, Optional, Any
 from litellm import completion
 
+try:
+    from transformers import GPT2TokenizerFast
+except ImportError:
+    GPT2TokenizerFast = None
+
 # Global counter for round-robin API key selection
 # Key: (api_endpoint, api_name) -> counter value
 _api_key_counters: Dict[tuple, int] = {}
+_gpt2_tokenizer = None
+
+
+def _count_tokens(text: Optional[str]) -> int:
+    """Fallback token counter using GPT-2 tokenizer if available."""
+    if not text:
+        return 0
+
+    global _gpt2_tokenizer
+    if GPT2TokenizerFast is None:
+        return len(text.split())
+
+    if _gpt2_tokenizer is None:
+        _gpt2_tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+
+    return len(_gpt2_tokenizer.encode(text))
 
 
 def _parse_api_keys(api_keys_env: Optional[str] = None) -> List[str]:
@@ -209,9 +230,9 @@ def call_api(
                 prompt_tokens = usage.get("prompt_tokens", 0)
                 completion_tokens = usage.get("completion_tokens", 0)
             else:
-                # Fallback estimation
-                prompt_tokens = len(req['query'].split()) if req['query'] else 0
-                completion_tokens = len(response_text.split()) if isinstance(response_text, str) else 0
+                # Fallback estimation using GPT-2 tokenizer if available
+                prompt_tokens = _count_tokens(req.get('query'))
+                completion_tokens = _count_tokens(response_text)
                 token_num = prompt_tokens + completion_tokens
             
             end_time = time.time()
