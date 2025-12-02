@@ -12,8 +12,8 @@ Adapted for LLMRouter framework.
 
 import os
 import yaml
+import copy
 import torch
-import torch.nn as nn
 from transformers import AutoTokenizer, DebertaV2Model
 from llmrouter.models.meta_router import MetaRouter
 from .dcmodel import RouterModule
@@ -193,7 +193,7 @@ class DCRouter(MetaRouter):
         save_dir = os.path.join(self.project_root, os.path.dirname(self.cfg['model_path']['load_model_path']))
         checkpoint_path = os.path.join(save_dir, 'best_model.pth')
         if not os.path.exists(checkpoint_path):
-            checkpoint_path = os.path.join(save_dir, 'best_training_model.pth')
+            checkpoint_path = os.path.join(save_dir, 'dcrouter_model.pth')
 
         if os.path.exists(checkpoint_path):
             print(f"[DCRouter] Loading checkpoint from: {checkpoint_path}")
@@ -212,12 +212,10 @@ class DCRouter(MetaRouter):
             shuffle=False
         )
 
-        all_predictions = []
-        routing_correct = 0
-        task_correct = 0
-        total = 0
+        query_data_output = []
 
         with torch.no_grad():
+            sample_idx = 0
             for batch_data in test_dataloader:
                 inputs, scores, _, _ = batch_data
                 inputs = {k: v.to(device) for k, v in inputs.items()}
@@ -231,23 +229,20 @@ class DCRouter(MetaRouter):
 
                 outputs = self.route(batch)
                 predictions = outputs["predictions"]
-                best_llm = torch.argmax(scores, dim=1)
 
-                routing_correct += (predictions == best_llm).sum().item()
-                binary_scores = (scores > 0).float()
-                mask = torch.zeros_like(scores)
-                mask.scatter_(1, predictions.unsqueeze(1), 1)
-                task_correct += (binary_scores * mask).sum().item()
-                total += len(predictions)
+                # Process each sample in the batch
+                for i in range(len(predictions)):
+                    if sample_idx < len(self.test_dataset.data):
+                        predicted_llm_idx = predictions[i].item()
+                        predicted_llm = self.test_dataset.router_node[predicted_llm_idx]
+                        query_text = self.test_dataset.data[sample_idx]['question']
+                        query_data_output.append({
+                            "query": query_text,
+                            "model_name": predicted_llm
+                        })
+                        sample_idx += 1
 
-                all_predictions.extend(predictions.cpu().tolist())
-
-        return {
-            "total": total,
-            "routing_accuracy": routing_correct / total,
-            "task_accuracy": task_correct / total,
-            "predictions": all_predictions
-        }
+        return query_data_output
 
     def route_single(self, data):
         """
@@ -266,7 +261,7 @@ class DCRouter(MetaRouter):
         save_dir = os.path.join(self.project_root, os.path.dirname(self.cfg['model_path']['load_model_path']))
         checkpoint_path = os.path.join(save_dir, 'best_model.pth')
         if not os.path.exists(checkpoint_path):
-            checkpoint_path = os.path.join(save_dir, 'best_training_model.pth')
+            checkpoint_path = os.path.join(save_dir, 'dcrouter_model.pth')
 
         if os.path.exists(checkpoint_path):
             state_dict = torch.load(checkpoint_path, map_location=device)
@@ -298,11 +293,7 @@ class DCRouter(MetaRouter):
 
         predicted_llm_idx = outputs["predictions"][0].item()
         predicted_llm = self.test_dataset.router_node[predicted_llm_idx]
-        routing_scores = outputs["scores"][0].cpu().tolist()
 
-        return {
-            "query": query_text,
-            "predicted_llm": predicted_llm,
-            "predicted_llm_idx": predicted_llm_idx,
-            "routing_scores": dict(zip(self.test_dataset.router_node, routing_scores))
-        }
+        query_output = copy.copy(data)
+        query_output["model_name"] = predicted_llm
+        return query_output

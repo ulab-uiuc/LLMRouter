@@ -24,27 +24,18 @@ def main():
         raise FileNotFoundError(f"YAML file not found: {args.yaml_path}")
 
     # Initialize the router
-    print(f"Using YAML file: {args.yaml_path}")
+    print(f"📄 Using YAML file: {args.yaml_path}")
     router = DCRouter(args.yaml_path)
-    print("DCRouter initialized successfully!")
+    print("✅ DCRouter initialized successfully!")
 
-    # Run batch inference
+    # Run inference
     result = router.route_batch()
-    print("\nBatch routing result:")
-    print(f"  Total samples: {result['total']}")
-    print(f"  Routing accuracy: {result['routing_accuracy']:.4f}")
-    print(f"  Task accuracy: {result['task_accuracy']:.4f}")
+    print("🧠 Batch routing result:")
+    print(result)
 
-    # Run single query inference
     result_single = router.route_single({"query": "How are you"})
-    print("\nSingle query routing result:")
-    print(f"  Query: {result_single['query']}")
-    print(f"  Predicted LLM: {result_single['predicted_llm']}")
-    print(f"  Routing scores:")
-    for llm_name, score in result_single['routing_scores'].items():
-        print(f"    {llm_name}: {score:.4f}")
-
-    print("\nDCRouter inference completed successfully!")
+    print("💬 Single query routing result:")
+    print(result_single)
 
 
 if __name__ == "__main__":
