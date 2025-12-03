@@ -25,6 +25,10 @@ from .automix import AutomixRouterTrainer
 from .dcrouter import DCRouter
 from .dcrouter import DCTrainer
 
+from .hybrid_llm import HybridLLMRouter
+from .hybrid_llm import HybridLLMTrainer
+
+from .router_r1 import RouterR1
 
 __all__ = [
     "MetaRouter",
@@ -52,4 +56,9 @@ __all__ = [
 
     "AutomixRouter",
     "AutomixRouterTrainer",
+
+    "HybridLLMRouter",
+    "HybridLLMTrainer",
+
+    "RouterR1",
 ]

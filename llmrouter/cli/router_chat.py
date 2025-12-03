@@ -26,7 +26,7 @@ from llmrouter.models import (
 from llmrouter.models.llmmultiroundrouter import LLMMultiRoundRouter
 from llmrouter.models.knnmultiroundrouter import KNNMultiRoundRouter
 try:
-    from llmrouter.models.Router_R1 import RouterR1
+    from llmrouter.models.router_r1 import RouterR1
 except ImportError:
     RouterR1 = None
 from llmrouter.utils import call_api, get_longformer_embedding
