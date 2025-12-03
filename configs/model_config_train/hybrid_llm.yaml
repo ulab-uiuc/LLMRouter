@@ -1,0 +1,21 @@
+# Config parameters for hybrid_llm training:
+
+router_mode: "probabilistic"         # deterministic / probabilistic / transformed
+router_tau: 0.1
+router_threshold: 0.5
+
+hparam:
+  hidden_layer_sizes: [128, 64]
+  activation: relu
+  solver: adam
+  max_iter: 300
+
+model_path:
+  ini_model_path: "configs/hybrid_ini.pkl"
+  save_model_path: "configs/hybrid_trained.pkl"
+  load_model_path: "configs/hybrid_trained.pkl"
+
+
+
+
+
