@@ -54,21 +54,24 @@
 
 ## Get Started
 
-### Install from pip
+### Installation
 
-You can install LLMRouter from PyPI to use it as a package:
+Clone the repository and install from source using a virtual environment (e.g., with anaconda3):
+
 ```bash
-pip install llmrouter
-```
+# Clone the repository
+git clone https://github.com/ulab-uiuc/LLMRouter.git
+cd LLMRouter
 
-### Install from scratch
-
-Use a virtual environment, e.g. with anaconda3:
-```bash
+# Create and activate virtual environment
 conda create -n llmrouter python=3.10
 conda activate llmrouter
+
+# Install the package
 pip install -e .
 ```
+
+> **Note**: PyPI package coming soon! Once published, you'll be able to install directly with `pip install llmrouter`.
 ### Training a Router
 
 Train various router models with your configuration:

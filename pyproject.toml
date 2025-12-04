@@ -3,44 +3,54 @@ requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "llmrouter"                # The name used when installing via pip
+name = "llmrouter"
 version = "0.1.0"
 description = "A unified framework for LLM routing and evaluation."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { file = "LICENSE" }
 
 authors = [
-  { name = "Haozhen Zhang", email = "your_email@example.com" }
+  { name = "Tao Feng", email = "taofeng2@illinois.edu" },
+  { name = "Haozhen Zhang", email = "wazhz14@gmail.com" }
 ]
 
-# Add project dependencies here. They can be filled later based on actual imports.
 dependencies = [
-  # "torch>=2.0",
-  # "transformers>=4.40",
-  # "numpy>=1.21",
-  # "pandas>=1.5",
-  # "scikit-learn>=1.2",
-  # "pyyaml>=6.0",
-  # "tqdm>=4.65",
+  "torch>=2.0",
+  "transformers>=4.40",
+  "numpy>=1.21",
+  "pandas>=1.5",
+  "scikit-learn>=1.2",
+  "pyyaml>=6.0",
+  "tqdm>=4.65",
+  "datasets>=2.14",
+  "pydantic>=2.0",
+  "gradio>=4.0",
+  "litellm>=1.0",
+  "peft>=0.7",
+  "torch-geometric>=2.3",
+  "scipy>=1.10",
 ]
 
 classifiers = [
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourname/LLMRouter"
-"Source"   = "https://github.com/yourname/LLMRouter"
+"Homepage" = "https://github.com/ulab-uiuc/LLMRouter"
+"Source" = "https://github.com/ulab-uiuc/LLMRouter"
+"Bug Tracker" = "https://github.com/ulab-uiuc/LLMRouter/issues"
 
 [project.scripts]
-# Define command-line entry points here.
-# Uncomment if the target module has a `main()` function.
-# Example:
-# "llmrouter-router" = "llmrouter.cli.router_main:main"
-# "llmrouter-chat"   = "llmrouter.cli.router_chat:main"
+llmrouter = "llmrouter.cli.router_main:main"
 
 [tool.setuptools]
 # Enable including package data (YAML configs, JSON files, etc.)
