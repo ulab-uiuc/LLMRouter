@@ -1,6 +1,7 @@
-<div style="width: 100%; text-align:center;">
-    <img src="assets/llmrouter.jpg" style="max-width: 60%; height: auto;">
+<div style="text-align:center;">
+    <img src="assets/llmrouter.jpg" style="width: 50%; height: auto;">
 </div>
+
 
 
 <h1 align="center">LLMRouter: An Open-Source Library for LLM Routing</h1>
