@@ -140,11 +140,7 @@ python -m llmrouter.cli.router_chat --router knnrouter --config config.yaml
 
 
 <p align="center">
-    <a href="https://star-history.com/#ulab-uiuc/LLMRouter">
-        <picture>
-            <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ulab-uiuc/LLMRouter&type=Date&theme=dark" />
-            <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ulab-uiuc/LLMRouter&type=Date" />
-            <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ulab-uiuc/LLMRouter&type=Date" />
-        </picture>
+    <a href="https://star-history.com/#ulab-uiuc/LLMRouter&Date">
+        <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ulab-uiuc/LLMRouter&type=Date" />
     </a>
 </p>
