@@ -32,7 +32,7 @@
 | `mlprouter` | ✅ | ✅ | Multi-Layer Perceptron based routing |
 | `mfrouter` | ✅ | ✅ | Matrix Factorization based routing |
 | `elorouter` | ❌ | ✅ | Elo Rating based routing |
-| `dcrouter` | ✅ | ✅ | Divide-and-Conquer routing |
+| `routerdc` | ✅ | ✅ | Dual Contrastive learning based routing |
 | `automix` | ❌ | ✅ | Automatic model mixing |
 | `hybrid_llm` | ✅ | ✅ | Hybrid LLM routing strategy |
 | `graphrouter` | ✅ | ✅ | Graph-based routing |
