@@ -28,6 +28,9 @@
 
 - 🚀 **[2025-12]**: **LLMRouter** is officially released - ship smarter 🧠, cost-aware 💸 LLM routing with 16+ routers 🧭, a unified `llmrouter` CLI 🛠️, and a plugin workflow for custom routers 🧩.
 
+## Reference 📎
+
+- [Search-R1](https://github.com/PeterGriffinJin/Search-R1): Train your LLM to reason and search.
 
 ## Supported Routers 🧭
 
