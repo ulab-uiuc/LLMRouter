@@ -56,6 +56,7 @@ Query → LLM Decomposition+Routing → [(Sub-Query 1, Model A), (Sub-Query 2, M
 | `base_model` | str | `"Qwen/Qwen2.5-3B-Instruct"` | Base model for decomposition/aggregation/routing |
 | `use_local_llm` | bool | `false` | Use local vLLM (true) or API (false) |
 | `api_endpoint` | str | - | API endpoint for execution |
+| `decomposition_max_tokens` | int | `2048` | Max tokens used by the decomposition + routing step |
 
 ### LLM Data
 

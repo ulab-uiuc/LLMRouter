@@ -405,6 +405,7 @@ class LLMMultiRoundRouter(MetaRouter):
             List of (sub_query, model_name) tuples
         """
         decomp_route_prompt = self.DECOMP_ROUTE_PROMPT.format(query=query)
+        decomp_max_tokens = self.cfg.get("decomposition_max_tokens", 2048)
         
         if self.use_local_llm:
             self._initialize_local_llm()
@@ -415,7 +416,7 @@ class LLMMultiRoundRouter(MetaRouter):
                     tokenize=False,
                     add_generation_prompt=True
                 )
-                sampling_params = SamplingParams(temperature=0.0, top_p=0.95, max_tokens=512)
+                sampling_params = SamplingParams(temperature=0.0, top_p=0.95, max_tokens=decomp_max_tokens)
                 outputs = self.local_llm.generate([prompt_text], sampling_params)
                 decomp_output = outputs[0].outputs[0].text.strip()
             else:
@@ -459,7 +460,7 @@ class LLMMultiRoundRouter(MetaRouter):
             if service:
                 request["service"] = service
             try:
-                result = call_api(request, max_tokens=512, temperature=0.0)
+                result = call_api(request, max_tokens=decomp_max_tokens, temperature=0.0)
                 decomp_output = result.get("response", "")
             except Exception as e:
                 print(f"Error in decomposition+routing: {e}")

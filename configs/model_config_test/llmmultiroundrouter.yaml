@@ -24,6 +24,7 @@ data_path:
 base_model: 'meta/llama-3.1-8b-instruct'  # Model for decomposition+routing and aggregation
 use_local_llm: false  # Set to true to use vLLM for local inference (requires vLLM installed)
 api_endpoint: 'https://integrate.api.nvidia.com/v1'  # API endpoint for execution
+decomposition_max_tokens: 2048  # Max tokens for the decomposition+routing step
 
 metric:
   weights:
@@ -32,4 +33,3 @@ metric:
     llm_judge: 0
 
 # No hparam section needed (no KNN parameters)
-
