@@ -101,20 +101,18 @@ class LLMJudgeRouter(MetaRouter):
             f"Use {self.large_model} only for clearly harder reasoning or reliability needs.\n"
             f"If unsure, pick {self.small_model}.\n"
             "Do not answer the user.\n"
-            "Return JSON only:\n"
-            "{"
-            f"\"model\":\"{self.small_model}\","
-            "\"confidence\":0.0,"
-            "\"reason\":\"short\","
-            "\"signals\":[\"tag\"]"
-            "}\n"
-            f"The model field must be exactly {self.small_model} or {self.large_model}."
+            "Return one JSON object only.\n"
+            f"The `model` field must be exactly `{self.small_model}` or `{self.large_model}`.\n"
+            "The `confidence` field must be a number between 0.0 and 1.0.\n"
+            "The `reason` field must be a short routing reason.\n"
+            "The `signals` field must be a list of 1-3 short abstract tags.\n"
+            "Do not include markdown fences or any extra text."
         )
         estimated_prompt_tokens = max(
             1,
             (len(prompt) + len(query)) // max(1, self.prompt_budget_chars_per_token),
         )
-        if estimated_prompt_tokens > self.prompt_budget_output_buffer:
+        if estimated_prompt_tokens > self.max_tokens:
             return {
                 "model": self.large_model,
                 "reason": "judge_budget_risk",

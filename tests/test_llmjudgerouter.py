@@ -14,7 +14,7 @@ def _build_router():
     router.judge_api_key = None
     router.judge_model = "qwen3:0.6b"
     router.timeout_s = 5
-    router.max_tokens = 64
+    router.max_tokens = 256
     router.temperature = 0
     router.reason_max_chars = 80
     router.max_signals = 3
@@ -66,7 +66,7 @@ def test_llm_judge_router_uses_openai_compatible_chat_completions():
         result = router.route_single({"query": "What is Goldbach's conjecture?"})
 
     assert captured["url"] == "http://127.0.0.1:11434/v1/chat/completions"
-    assert captured["json"]["max_tokens"] == 64
+    assert captured["json"]["max_tokens"] == 256
     assert captured["json"]["model"] == "qwen3:0.6b"
     assert result["model_name"] == "deepseek-flash"
     assert result["routing_confidence"] == 0.82
@@ -77,8 +77,7 @@ def test_llm_judge_router_uses_openai_compatible_chat_completions():
 
 def test_llm_judge_router_uses_large_model_when_prompt_budget_is_risky():
     router = _build_router()
-    router.max_tokens = 64
-    router.prompt_budget_output_buffer = 4
+    router.max_tokens = 16
 
     result = router.route_single({"query": "x" * 100})
 
