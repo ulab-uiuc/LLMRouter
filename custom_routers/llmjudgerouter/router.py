@@ -26,6 +26,9 @@ class LLMJudgeRouter(MetaRouter):
         self.temperature = float(judge.get("temperature", 0))
         self.reason_max_chars = int(judge.get("reason_max_chars", 80))
         self.max_signals = int(judge.get("max_signals", 3))
+        self.fallback_to_large_on_judge_error = bool(judge.get("fallback_to_large_on_judge_error", True))
+        self.prompt_budget_chars_per_token = int(judge.get("prompt_budget_chars_per_token", 4))
+        self.prompt_budget_output_buffer = int(judge.get("prompt_budget_output_buffer", 128))
 
     def _resolve_api_key(self, value: Optional[str]) -> Optional[str]:
         if not isinstance(value, str):
@@ -92,23 +95,34 @@ class LLMJudgeRouter(MetaRouter):
     def _judge(self, query: str) -> Dict[str, Any]:
         # Keep the prompt short and generic so downstream users can tune it easily.
         prompt = (
-            "You are a routing judge for a MaaS gateway.\n"
-            "Choose exactly one backend model for the user request.\n"
-            f"Available models: {self.small_model}, {self.large_model}.\n"
-            f"Prefer {self.small_model} for simple or routine requests.\n"
-            f"Choose {self.large_model} only when the request clearly needs stronger reasoning, planning, or reliability.\n"
-            f"If uncertain, prefer {self.small_model}.\n"
-            "Do not answer the user request.\n"
-            "Return only one JSON object with this schema:\n"
+            "You are a MaaS routing judge.\n"
+            f"Pick exactly one model: {self.small_model} or {self.large_model}.\n"
+            f"Use {self.small_model} for simple requests.\n"
+            f"Use {self.large_model} only for clearly harder reasoning or reliability needs.\n"
+            f"If unsure, pick {self.small_model}.\n"
+            "Do not answer the user.\n"
+            "Return JSON only:\n"
             "{"
-            f"\"model\":\"{self.small_model}|{self.large_model}\","
+            f"\"model\":\"{self.small_model}\","
             "\"confidence\":0.0,"
-            "\"reason\":\"short routing reason\","
-            "\"signals\":[\"abstract_tag\"]"
+            "\"reason\":\"short\","
+            "\"signals\":[\"tag\"]"
             "}\n"
-            "The reason must be short, non-sensitive, and must not include chain-of-thought.\n"
-            "Signals must be short abstract tags, not placeholders and not copied entities from the query."
+            f"The model field must be exactly {self.small_model} or {self.large_model}."
         )
+        estimated_prompt_tokens = max(
+            1,
+            (len(prompt) + len(query)) // max(1, self.prompt_budget_chars_per_token),
+        )
+        if estimated_prompt_tokens > self.prompt_budget_output_buffer:
+            return {
+                "model": self.large_model,
+                "reason": "judge_budget_risk",
+                "signals": ["judge_budget"],
+                "confidence": None,
+                "raw": None,
+                "judge_latency_ms": 0,
+            }
 
         headers = {"Content-Type": "application/json"}
         if self.judge_api_key:
@@ -169,7 +183,18 @@ class LLMJudgeRouter(MetaRouter):
 
     def route_single(self, query_input: Dict[str, Any]) -> Dict[str, Any]:
         query = query_input.get("query", "") if isinstance(query_input, dict) else str(query_input)
-        judged = self._judge(query)
+        try:
+            judged = self._judge(query)
+        except Exception:
+            if not self.fallback_to_large_on_judge_error:
+                raise
+            judged = {
+                "model": self.large_model,
+                "reason": "judge_error_fallback",
+                "signals": ["judge_error"],
+                "confidence": None,
+                "judge_latency_ms": None,
+            }
         selected = judged["model"]
         return {
             "query": query,

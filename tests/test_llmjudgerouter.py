@@ -18,6 +18,9 @@ def _build_router():
     router.temperature = 0
     router.reason_max_chars = 80
     router.max_signals = 3
+    router.fallback_to_large_on_judge_error = True
+    router.prompt_budget_chars_per_token = 4
+    router.prompt_budget_output_buffer = 128
     return router
 
 
@@ -70,3 +73,28 @@ def test_llm_judge_router_uses_openai_compatible_chat_completions():
     assert result["routing_reason"] == "simple factual request"
     assert result["routing_signals"] == ["fact", "brief"]
     assert isinstance(result["routing_judge_latency_ms"], int)
+
+
+def test_llm_judge_router_uses_large_model_when_prompt_budget_is_risky():
+    router = _build_router()
+    router.max_tokens = 64
+    router.prompt_budget_output_buffer = 4
+
+    result = router.route_single({"query": "x" * 100})
+
+    assert result["model_name"] == "deepseek-pro"
+    assert result["routing_reason"] == "judge_budget_risk"
+    assert result["routing_signals"] == ["judge_budget"]
+    assert result["routing_judge_latency_ms"] == 0
+
+
+def test_llm_judge_router_falls_back_to_large_model_on_judge_error():
+    router = _build_router()
+
+    with patch.object(LLMJudgeRouter, "_judge", side_effect=ValueError("empty judge output")):
+        result = router.route_single({"query": "证明哥德巴赫猜想"})
+
+    assert result["model_name"] == "deepseek-pro"
+    assert result["routing_reason"] == "judge_error_fallback"
+    assert result["routing_signals"] == ["judge_error"]
+    assert result["routing_judge_latency_ms"] is None
