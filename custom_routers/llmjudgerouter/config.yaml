@@ -1,0 +1,12 @@
+hparam:
+  small_model: "deepseek-flash"
+  large_model: "deepseek-pro"
+judge:
+  api_base: "http://127.0.0.1:11434/v1"
+  api_key: null
+  model: "qwen3:0.6b"
+  timeout_s: 5
+  max_tokens: 64
+  temperature: 0
+  reason_max_chars: 80
+  max_signals: 3

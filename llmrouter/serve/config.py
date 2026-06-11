@@ -43,6 +43,8 @@ class ServeConfig:
     # Show model name prefix
     show_model_prefix: bool = True
 
+    fail_on_routing_error: bool = False
+
     @classmethod
     def from_yaml(cls, yaml_path: str) -> "ServeConfig":
         """Load configuration from YAML file"""
@@ -59,6 +61,7 @@ class ServeConfig:
         config.host = serve_config.get("host", config.host)
         config.port = serve_config.get("port", config.port)
         config.show_model_prefix = serve_config.get("show_model_prefix", config.show_model_prefix)
+        config.fail_on_routing_error = serve_config.get("fail_on_routing_error", config.fail_on_routing_error)
 
         # Router settings
         router_config = data.get("router", {})
