@@ -1,0 +1,58 @@
+# FusionGateRouter config — see fusion-gate-router-prd-v0.2.0.md
+#
+# Plugin path: custom_routers/fusion_gate/config.yaml
+# Use:  llmrouter infer --router fusion_gate --config custom_routers/fusion_gate/config.yaml --query "..."
+# Route-only (no API call / no spend):  ... --route-only
+
+data_path:
+  # LLM candidate metadata (name, service, model, prices, api_endpoint).
+  # OpenRouter models should set "service": "OpenRouter" so API_KEYS resolves the key.
+  llm_data: 'data/example_data/llm_candidates/default_llm.json'
+
+  # Per-model routing performance — the capability source for UMB-123 panel
+  # selection. Loaded by MetaRouter's DataLoader (mirrors randomrouter/config.yaml).
+  query_data_test: 'data/example_data/query_data/default_query_test.jsonl'
+  routing_data_test: 'data/example_data/routing_data/default_routing_test_data.jsonl'
+
+# Metric weights (optional, for evaluation; mirrors randomrouter/config.yaml).
+metric:
+  weights:
+    performance: 1
+    cost: 0
+    llm_judge: 0
+
+hparam:
+  # --- gate (UMB-119) ---
+  threshold: 0.5          # difficulty cutoff to escalate -> full Quality fusion
+
+  # --- three-tier dial (UMB-124) ---
+  # Lower boundary for the middle tier. difficulty in [budget_threshold, threshold)
+  # routes to a cheap Budget fusion panel; >= threshold routes to the full Quality
+  # panel; < budget_threshold routes single. Set to null to disable the mid tier.
+  budget_threshold: 0.3
+
+  # --- panel selection (UMB-123) ---
+  k: 3                    # panel size -> maps to openrouter:fusion `analysis_models`
+  judge: null             # judge slug -> maps to tool `model`; null = outer model
+  panel_preset: 'Quality' # fallback when capability data unavailable: Quality | Budget
+
+  # --- cost guard (UMB-121) ---
+  # Hard per-query DOLLAR cap on the projected Σ(panel)+judge cost; null = off.
+  # e.g. 0.05 ≈ five cents per query. Projection:
+  #   (input_price*prompt_tokens + output_price*completion_tokens)/1e6 per member,
+  # with prompt_tokens ≈ len(query)//4 and completion_tokens = est_completion_tokens.
+  cost_ceiling: null
+  est_completion_tokens: 512  # per-completion output-token estimate for the projection
+
+  # --- provider / endpoint (UMB-121) ---
+  # base_url is the OpenRouter endpoint hosting the beta server tool; provider is
+  # informational (key resolution). base_url overrides the top-level api_endpoint.
+  provider: 'OpenRouter'
+  base_url: 'https://openrouter.ai/api/v1'
+
+  # Optional JSONL sink for fusion-call logging (UMB-125). null = fusion_log default.
+  log_sink_path: null
+
+# OpenRouter endpoint (server tools live here). Per-model endpoints in the
+# candidate JSON override this. Key supplied via API_KEYS '{"OpenRouter": "..."}'.
+api_endpoint: 'https://openrouter.ai/api/v1'
