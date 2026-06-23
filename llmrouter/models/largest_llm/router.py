@@ -159,27 +159,14 @@ class LargestLLM(MetaRouter):
             key=lambda k: parse_size(self.llm_data[k].get("size", "0B")),
         )
 
-        # Determine which data to use
-        if batch is not None:
-            query_data = batch if isinstance(batch, list) else [batch]
-        else:
-            if hasattr(self, "query_data_test") and self.query_data_test is not None:
-                query_data = copy.copy(self.query_data_test)
-            else:
-                print("Warning: No batch provided and no test data available for batch routing.")
-                return []
+        query_data = self._resolve_query_data(batch)
+        if query_data is None:
+            return []
 
         query_data_output = []
         for row in query_data:
             # Handle both dict and non-dict inputs
-            if isinstance(row, dict):
-                row_copy = copy.copy(row)
-                original_query = row_copy.get("query", "")
-                row_task_name = row_copy.get("task_name", task_name)
-            else:
-                row_copy = {"query": str(row)}
-                original_query = str(row)
-                row_task_name = task_name
+            row_copy, original_query, row_task_name = self._normalize_row(row, task_name)
 
             # Step 1: Route - always use largest model
             model_name = largest_model_name

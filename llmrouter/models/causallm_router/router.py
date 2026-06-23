@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional
 import os
-import torch
 import torch.nn as nn
 import copy
 from llmrouter.models.meta_router import MetaRouter
@@ -213,15 +212,9 @@ Best LLM:"""
         """
         self._load_vllm_model()
 
-        # Determine which data to use
-        if batch is not None:
-            query_data = batch if isinstance(batch, list) else [batch]
-        else:
-            if hasattr(self, "query_data_test") and self.query_data_test is not None:
-                query_data = copy.copy(self.query_data_test)
-            else:
-                print("Warning: No batch provided and no test data available for batch routing.")
-                return []
+        query_data = self._resolve_query_data(batch)
+        if query_data is None:
+            return []
 
         # Build prompts for all queries (for routing only)
         prompts = []
@@ -239,15 +232,7 @@ Best LLM:"""
         query_data_output = []
         for i, row in enumerate(query_data):
             # Handle both dict and non-dict inputs
-            if isinstance(row, dict):
-                row_copy = copy.copy(row)
-                original_query = row_copy.get("query", "")
-                # Use task_name from row if available, otherwise use parameter
-                row_task_name = row_copy.get("task_name", task_name)
-            else:
-                row_copy = {"query": str(row)}
-                original_query = str(row)
-                row_task_name = task_name
+            row_copy, original_query, row_task_name = self._normalize_row(row, task_name)
 
             # Step 1: Get routed model name
             generated_text = outputs[i].outputs[0].text

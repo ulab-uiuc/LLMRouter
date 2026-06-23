@@ -21,19 +21,16 @@ import os
 import sys
 import time
 import json
-import ast
 import re
 import argparse
 import yaml
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
 from pathlib import Path
 
 import pandas as pd
 import numpy as np
-import torch
 from tqdm import tqdm
 
 # Allow importing local helper packages under repo `data/` (e.g., `human_eval`, `mbpp`)
@@ -45,16 +42,13 @@ if _LOCAL_DATA_DIR.exists() and str(_LOCAL_DATA_DIR) not in sys.path:
 # Import utils
 from llmrouter.utils import (
     setup_environment,
-    format_mc_prompt, format_gsm8k_prompt, format_math_prompt,
-    format_commonsense_qa_prompt, format_mbpp_prompt, format_humaneval_prompt,
-    generate_task_query, ProgressTracker, to_tensor, clean_df,
-    process_final_data, call_api
+    generate_task_query, ProgressTracker, call_api
 )
 from llmrouter.utils.data_processing import process_unified_embeddings_and_routing
 from llmrouter.data.data_loader import DataLoader
 
 # Import evaluation functions
-from llmrouter.utils import f1_score, exact_match_score, get_bert_score, evaluate_code, cem_score
+from llmrouter.utils import f1_score, exact_match_score, get_bert_score, cem_score
 from llmrouter.utils.evaluation import last_boxed_only_string, remove_boxed, is_equiv
 try:
     from human_eval.evaluate_functional_correctness import entry_point_item
@@ -321,7 +315,7 @@ def eval_perf(metric, prediction, ground_truth, task_name, task_id=None):
                 answer = remove_boxed(string_in_last_boxed)
                 if is_equiv(answer, ground_truth_processed):
                     return 1
-        except Exception as e:
+        except Exception:
             return 0
         return 0
     

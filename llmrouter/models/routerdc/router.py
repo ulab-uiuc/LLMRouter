@@ -15,7 +15,7 @@ import yaml
 import copy
 import torch
 from typing import Any, Dict, List, Optional
-from transformers import AutoTokenizer, DebertaV2Model, DebertaV2Tokenizer
+from transformers import DebertaV2Model, DebertaV2Tokenizer
 from llmrouter.models.meta_router import MetaRouter
 from llmrouter.utils import call_api, generate_task_query, calculate_task_performance
 from .dcmodel import RouterModule

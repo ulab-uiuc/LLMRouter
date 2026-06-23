@@ -27,7 +27,11 @@ dependencies = [
   "datasets>=2.14",
   "pydantic>=2.0",
   "gradio>=4.0",
-  "litellm>=1.0",
+  # Security: CVE-2026-42203/42208/42271 fixed in 1.83.7, CVE-2026-40217 in 1.83.10,
+  # CVE-2026-49468 in 1.84.0. litellm dropped Python 3.14 support at 1.83.8, so on
+  # 3.14 the ceiling is 1.83.7 (3 of 5 fixed); 3.10–3.13 get the fully-patched line.
+  "litellm>=1.84.0; python_version < '3.14'",
+  "litellm>=1.83.7; python_version >= '3.14'",
   "peft>=0.7",
   "torch-geometric>=2.3",
   "scipy>=1.10",
@@ -42,6 +46,9 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Development Status :: 3 - Alpha",
@@ -56,10 +63,24 @@ classifiers = [
 "Bug Tracker" = "https://github.com/ulab-uiuc/LLMRouter/issues"
 
 [project.optional-dependencies]
-# RouterR1 requires vLLM (GPU only)
-router-r1 = ["vllm==0.6.3", "torch==2.4.0", "openai>=1.0"]
+# RouterR1 requires vLLM (GPU only).
+# vllm==0.6.3 / torch==2.4.0 have no wheels for Python >= 3.14, so those pins are
+# gated to Python < 3.14 via environment markers. This keeps `pip install .[router-r1]`
+# (and `.[all]`) from failing dependency resolution on 3.14; the GPU stack is simply
+# not installed there. Router-R1 itself supports Python 3.10–3.13 only — on 3.14 it
+# raises a clear ImportError at use time (see llmrouter/models/router_r1/router.py).
+# The base package (and all other routers) supports Python 3.10–3.14.
+router-r1 = [
+  "vllm==0.6.3; python_version < '3.14'",
+  "torch==2.4.0; python_version < '3.14'",
+  "openai>=1.0",
+]
 # All optional dependencies
-all = ["vllm==0.6.3", "torch==2.4.0", "openai>=1.0"]
+all = [
+  "vllm==0.6.3; python_version < '3.14'",
+  "torch==2.4.0; python_version < '3.14'",
+  "openai>=1.0",
+]
 
 [project.scripts]
 llmrouter = "llmrouter.cli.router_main:main"

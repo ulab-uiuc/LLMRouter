@@ -7,9 +7,8 @@ This module provides functions to convert data to DCRouter format.
 """
 
 import json
-import os
 import numpy as np
-from collections import Counter, defaultdict
+from collections import defaultdict
 from sklearn.cluster import KMeans
 from typing import List, Dict
 
@@ -126,10 +125,6 @@ def add_clusters(data: List[Dict], n_clusters: int = 3, random_state: int = 42) 
     # Add cluster_id
     for i, item in enumerate(data):
         item['cluster_id'] = int(cluster_labels[i])
-
-    # Print cluster distribution
-    cluster_dist = Counter(cluster_labels)
-    # print(f"  Cluster distribution: {dict(cluster_dist)}")
 
     return data
 

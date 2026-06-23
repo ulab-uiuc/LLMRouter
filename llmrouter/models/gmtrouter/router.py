@@ -11,11 +11,10 @@ Complete integration into LLMRouter with:
 Training and inference are fully integrated into LLMRouter CLI.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 import os
 import json
 import torch
-import numpy as np
 
 from llmrouter.models.meta_router import MetaRouter
 from llmrouter.models.gmtrouter.data_loader import GMTRouterDataLoader, detect_data_format

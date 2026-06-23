@@ -1,5 +1,4 @@
 import os
-import torch
 from llmrouter.models.base_trainer import BaseTrainer
 from llmrouter.utils import save_model, load_model
 

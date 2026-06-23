@@ -1,8 +1,5 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 import os
-import pickle
-import random
-import numpy as np
 import torch.nn as nn
 import copy
 from sklearn.neighbors import KNeighborsClassifier
@@ -132,28 +129,14 @@ class KNNRouter(MetaRouter):
         load_model_path = os.path.join(project_root, self.cfg["model_path"]["load_model_path"])
         self.knn_model = load_model(load_model_path)
 
-        # Determine which data to use
-        if batch is not None:
-            query_data = batch if isinstance(batch, list) else [batch]
-        else:
-            if hasattr(self, "query_data_test") and self.query_data_test is not None:
-                query_data = copy.copy(self.query_data_test)
-            else:
-                print("Warning: No batch provided and no test data available for batch routing.")
-                return []
+        query_data = self._resolve_query_data(batch)
+        if query_data is None:
+            return []
 
         query_data_output = []
         for row in query_data:
             # Handle both dict and non-dict inputs
-            if isinstance(row, dict):
-                row_copy = copy.copy(row)
-                original_query = row_copy.get("query", "")
-                # Use task_name from row if available, otherwise use parameter
-                row_task_name = row_copy.get("task_name", task_name)
-            else:
-                row_copy = {"query": str(row)}
-                original_query = str(row)
-                row_task_name = task_name
+            row_copy, original_query, row_task_name = self._normalize_row(row, task_name)
 
             # Step 1: Route the query to get model_name
             query_embedding = [get_longformer_embedding(original_query).numpy()]

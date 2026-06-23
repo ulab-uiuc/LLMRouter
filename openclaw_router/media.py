@@ -14,9 +14,9 @@ import base64
 import httpx
 import os
 import tempfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple
 
 # Try to import optional video processing library
 try:

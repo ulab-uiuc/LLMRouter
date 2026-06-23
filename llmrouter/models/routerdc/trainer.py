@@ -13,7 +13,6 @@ Adapted for LLMRouter framework while preserving all original logic.
 import os
 import json
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 

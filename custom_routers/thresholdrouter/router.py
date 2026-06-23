@@ -5,7 +5,6 @@ Threshold Router - Difficulty-based routing
 from typing import Any, Dict, List
 import torch
 import torch.nn as nn
-import numpy as np
 
 from llmrouter.models.meta_router import MetaRouter
 
@@ -129,9 +128,9 @@ class ThresholdRouter(MetaRouter):
             if not isinstance(embedding, torch.Tensor):
                 embedding = torch.tensor(embedding, dtype=torch.float32)
         elif hasattr(self, 'query_embeddings') and 'query' in query_input:
-            # Try to get from loaded embeddings (if available)
-            query = query_input['query']
+            # Try to get from loaded embeddings (if available).
             # This is a simplified version - real implementation would hash or lookup
+            # the query embedding here; for now we require an explicit 'embedding'.
             raise ValueError(
                 "Query embedding not provided. "
                 "Pass 'embedding' in query_input or implement embedding generation."

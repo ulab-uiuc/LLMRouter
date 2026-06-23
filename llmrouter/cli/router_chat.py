@@ -9,7 +9,7 @@ import atexit
 import argparse
 import os
 import yaml
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 import gradio as gr
 

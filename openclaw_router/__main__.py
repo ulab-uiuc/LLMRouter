@@ -10,7 +10,6 @@ Examples:
 """
 
 import argparse
-import sys
 
 from .server import create_app, run_server
 from .config import OpenClawConfig

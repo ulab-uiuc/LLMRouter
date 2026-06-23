@@ -37,9 +37,21 @@ MODEL_NAME_MAPPING = {
 }
 
 # Import prompt template from centralized prompts module
+from functools import lru_cache
+
 from llmrouter.prompts import load_prompt_template
 
-PROMPT_TEMPLATE = load_prompt_template("data_conversion")
+
+@lru_cache(maxsize=1)
+def _get_prompt_template() -> str:
+    """Load the data-conversion prompt template on first use.
+
+    Loaded lazily (and cached) rather than at import time so that importing this
+    module never performs disk I/O — importing it previously raised
+    FileNotFoundError wherever the template path didn't resolve (e.g. a
+    non-editable install). It is only needed when actually converting data.
+    """
+    return load_prompt_template("data_conversion")
 
 
 def normalize_model_name(model_name: str) -> str:
@@ -119,7 +131,7 @@ def generate_id(index: int, task_name: str = "default") -> str:
 
 def generate_prompt(question: str) -> List[Dict]:
     """Generate prompt format"""
-    content = PROMPT_TEMPLATE.format(question=question)
+    content = _get_prompt_template().format(question=question)
     return [{"content": content, "role": "user"}]
 
 

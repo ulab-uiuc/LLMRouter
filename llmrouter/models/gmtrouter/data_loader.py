@@ -8,8 +8,7 @@ This module handles loading, validation, and graph construction.
 import json
 import torch
 import numpy as np
-from typing import Dict, List, Tuple, Any, Optional
-from pathlib import Path
+from typing import Dict, List, Tuple, Any
 from collections import defaultdict
 from enum import Enum
 from pydantic import ValidationError
@@ -278,7 +277,6 @@ class GMTRouterDataLoader:
             for conv_turn in conversation:
                 query_text = conv_turn['query']
                 query_emb = np.array(conv_turn.get('query_emb', []))
-                response_text = conv_turn.get('response', '')
                 rating = conv_turn.get('rating', 0.0)
 
                 # Set embedding dimension
