@@ -12,16 +12,13 @@ import re
 import yaml
 import json
 import pandas as pd
-import copy
 from typing import Any, Dict, List, Tuple, Optional
 
-import torch.nn as nn
 
 from llmrouter.models.meta_router import MetaRouter
-from llmrouter.utils import call_api, generate_task_query, calculate_task_performance
+from llmrouter.utils import generate_task_query, calculate_task_performance
 from .model import AutomixModel
 from .methods import Threshold, POMDP, SelfConsistency
-from .data_pipeline import prepare_automix_data
 
 
 def parse_size(size_str: str) -> float:
@@ -182,7 +179,6 @@ class AutomixRouter(MetaRouter):
             tuple: (train_df, test_df) - Training and test DataFrames with all required columns
         """
         data_cfg = self.cfg["data_path"]
-        hparam = self.cfg["hparam"]
 
         # Get paths for routing data
         train_path = data_cfg.get("routing_data_train")
@@ -249,7 +245,7 @@ class AutomixRouter(MetaRouter):
         # Import data pipeline function
         from .data_pipeline import init_providers, run_solver_job, prepare_row
         from .data_pipeline import run_verification, compute_fraction_correct
-        from .data_pipeline import clean_answer, calculate_f1_for_models, categorize_rows
+        from .data_pipeline import calculate_f1_for_models, categorize_rows
 
         # Initialize API providers
         init_providers()
@@ -455,30 +451,14 @@ class AutomixRouter(MetaRouter):
         """
         from .data_pipeline import prepare_row, run_solver_job, run_verification, compute_fraction_correct
 
-        # Determine which data to use
-        if batch is not None:
-            query_data = batch if isinstance(batch, list) else [batch]
-        else:
-            if hasattr(self, "query_data_test") and self.query_data_test is not None:
-                query_data = copy.copy(self.query_data_test)
-            else:
-                print("Warning: No batch provided and no test data available for batch routing.")
-                return []
-
-        # Get API endpoint from config (Note: Automix uses its own data_pipeline, so this is not currently used)
-        api_endpoint = self.cfg.get("api_endpoint")
+        query_data = self._resolve_query_data(batch)
+        if query_data is None:
+            return []
 
         query_data_output = []
         for row in query_data:
             # Handle both dict and non-dict inputs
-            if isinstance(row, dict):
-                row_copy = copy.copy(row)
-                original_query = row_copy.get("query", "")
-                row_task_name = row_copy.get("task_name", task_name)
-            else:
-                row_copy = {"query": str(row)}
-                original_query = str(row)
-                row_task_name = task_name
+            row_copy, original_query, row_task_name = self._normalize_row(row, task_name)
 
             # Step 1: Automix routing - call small model first
             query_df = pd.DataFrame([{'query': original_query}])

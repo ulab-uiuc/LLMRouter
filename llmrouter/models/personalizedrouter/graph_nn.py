@@ -7,10 +7,6 @@ from torch_geometric.data import Data
 import torch.nn as nn
 from torch.optim import AdamW
 from sklearn.metrics import f1_score
-import numpy as np
-from collections import Counter
-import random
-import math
 
 class FeatureAlign(nn.Module):
 
@@ -208,11 +204,25 @@ class GNN_prediction:
                 f1 = f1_score(label_idx_, observe_idx_, average='macro')
                 loss_validate = self.criterion(predicted_edges_validate.reshape(-1), data_validate.label[mask_validate].reshape(-1))
 
-                if f1>=best_f1:
+                # Model selection is driven by validation f1 only. When validation
+                # improves we checkpoint the model and record THAT checkpoint's test
+                # score as the reported result. We intentionally do NOT take a max()
+                # over per-epoch test scores: doing so selects the best epoch by
+                # peeking at the test set, producing an optimistic, leakage-biased
+                # number that also wouldn't match the saved (best-validation) model.
+                improved = f1 >= best_f1
+                if improved:
                     best_f1 = f1
                     torch.save(self.model.state_dict(), self.save_path)
-                test_result,test_loss=self.test(data_for_test,self.config['model_path'])
-                best_test_result = max(best_test_result, test_result)
+                    test_result, test_loss = self.test(data_for_test, self.config['model_path'])
+                    best_test_result = test_result
+
+                print(
+                    f"[PersonalizedRouter] epoch {epoch + 1}/{self.config['train_epoch']} | "
+                    f"val_acc={validate_accuracy:.4f} val_loss={loss_validate.item():.4f} "
+                    f"val_f1={f1:.4f} | best_val_f1={best_f1:.4f} test@best_val={best_test_result:.4f}"
+                    + (" *" if improved else "")
+                )
         self.best_test_result = best_test_result
 
     def test(self,data,model_path):

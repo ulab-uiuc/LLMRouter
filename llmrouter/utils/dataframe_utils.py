@@ -2,7 +2,6 @@
 DataFrame processing utilities for LLMRouter scripts
 """
 
-import pandas as pd
 
 def clean_df(df):
     """Clean and standardize DataFrame columns"""

@@ -10,7 +10,7 @@ Original source: automix/colabs/automix.py
 Adapted for LLMRouter framework with PyTorch nn.Module interface.
 """
 
-from typing import List, Union
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -230,11 +230,9 @@ class AutomixModel(nn.Module):
                 """Find key with maximum value, handling inf/-inf."""
                 max_val = float('-inf')
                 max_key = None
-                has_inf = False
                 for k, v in d.items():
                     if isinstance(v, float):
                         if v == float('inf'):
-                            has_inf = True
                             max_key = k  # Prefer inf over finite values
                             break
                     if v > max_val:

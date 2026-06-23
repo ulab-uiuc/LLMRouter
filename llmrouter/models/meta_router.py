@@ -1,3 +1,4 @@
+import copy
 import os
 import yaml
 from abc import ABC, abstractmethod
@@ -97,6 +98,43 @@ class MetaRouter(nn.Module, ABC):
                 Routing outputs such as logits, scores, or selected model indices.
         """
         raise NotImplementedError
+
+    # ------------------------------------------------------------------
+    # Shared helpers for concrete routers
+    # ------------------------------------------------------------------
+
+    def _resolve_query_data(self, batch):
+        """Resolve the rows to route.
+
+        Uses an explicit ``batch`` when provided, otherwise falls back to the
+        loaded ``query_data_test``. Returns a list of rows, or ``None`` when
+        neither source is available (callers should then return an empty result).
+        """
+        if batch is not None:
+            return batch if isinstance(batch, list) else [batch]
+        if getattr(self, "query_data_test", None) is not None:
+            return copy.copy(self.query_data_test)
+        print("Warning: No batch provided and no test data available for batch routing.")
+        return None
+
+    @staticmethod
+    def _normalize_row(row, task_name):
+        """Normalize one routing input row.
+
+        Returns ``(row_copy, original_query, row_task_name)``. A dict row is
+        shallow-copied and its ``query``/``task_name`` read out; any non-dict
+        row is wrapped as ``{"query": str(row)}``. The per-row task name falls
+        back to the batch-level ``task_name`` when absent.
+        """
+        if isinstance(row, dict):
+            row_copy = copy.copy(row)
+            original_query = row_copy.get("query", "")
+            row_task_name = row_copy.get("task_name", task_name)
+        else:
+            row_copy = {"query": str(row)}
+            original_query = str(row)
+            row_task_name = task_name
+        return row_copy, original_query, row_task_name
 
     def forward(self, batch):
         """

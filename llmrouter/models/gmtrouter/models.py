@@ -9,7 +9,7 @@ Implements:
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 
 
 class HeteroGNN(nn.Module):

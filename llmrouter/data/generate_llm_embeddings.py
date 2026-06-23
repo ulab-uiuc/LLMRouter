@@ -18,8 +18,7 @@ import sys
 import json
 import argparse
 import yaml
-from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 from llmrouter.utils import setup_environment, get_longformer_embedding
 from llmrouter.data.data_loader import DataLoader

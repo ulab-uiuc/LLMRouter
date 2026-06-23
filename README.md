@@ -118,6 +118,8 @@ pip install -e .
 
 # Optional: Install with RouterR1 support (requires GPU)
 # RouterR1 is tested with vllm==0.6.3 (torch==2.4.0); the extra pins these versions.
+# NOTE: these pins have no wheels for Python >= 3.14 — use Python 3.10–3.13 for the
+# [router-r1]/[all] extras. The base package supports Python 3.10–3.14.
 pip install -e ".[router-r1]"
 
 # Optional: Install all optional dependencies
@@ -129,6 +131,13 @@ pip install -e ".[all]"
 ```bash
 pip install llmrouter-lib
 ```
+
+> **🔒 Security note — choose Python 3.10–3.13 for production.** `litellm` (the LLM API-calling
+> layer) dropped Python 3.14 support at 1.83.8, so on 3.14 it is capped at 1.83.7, which carries known
+> CVEs and pins vulnerable transitive deps. On **Python 3.10–3.13** the dependency floor resolves
+> `litellm` to its fully-patched line and `pip-audit` reports no known vulnerabilities. Python 3.14 is
+> supported for development; for security-sensitive deployments use 3.10–3.13 until `litellm` restores
+> 3.14 support. See [.agent-reviews/dependency-audit.md](.agent-reviews/dependency-audit.md).
 
 ### 🔑 Setting Up API Keys
 

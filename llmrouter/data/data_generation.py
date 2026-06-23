@@ -31,18 +31,13 @@ import random
 import json
 import argparse
 import yaml
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Union
-from collections import defaultdict
 
-import pandas as pd
 import numpy as np
-from tqdm import tqdm
 from datasets import load_dataset
 
 # Import utils
 from llmrouter.utils import (
-    setup_environment, TASK_DESCRIPTIONS, CASE_NUM
+    setup_environment, CASE_NUM
 )
 from llmrouter.data.data_loader import DataLoader
 from llmrouter.data import batch_vlm_describe_images

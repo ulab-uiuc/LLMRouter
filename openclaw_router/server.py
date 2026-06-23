@@ -11,7 +11,6 @@ Or directly:
 """
 
 import json
-import os
 import re
 import sys
 from typing import AsyncGenerator, Optional, Dict, Any, List
@@ -35,7 +34,7 @@ try:
 except ImportError:
     from config import OpenClawConfig, LLMConfig, MODELS_WITHOUT_SYSTEM_ROLE, MODEL_CONTEXT_LIMITS
     from routers import OpenClawRouter, _safe_log
-    from media import process_multimodal_content, MediaConfig
+    from media import process_multimodal_content
 
 
 # ============================================================
@@ -489,7 +488,6 @@ def create_app(config: OpenClawConfig = None, config_path: str = None) -> FastAP
 
         # Extract user query for routing (with optional media understanding)
         user_query = ""
-        media_description = None
 
         # Find and process the last user message
         last_user_idx = None
@@ -510,7 +508,6 @@ def create_app(config: OpenClawConfig = None, config_path: str = None) -> FastAP
                     raw_content, config.media, fallback_key=together_key
                 )
                 user_query = processed_text[:500]
-                media_description = media_desc
                 if media_desc:
                     print(f"[Media] Processed: {media_desc[:80]}...")
                     # IMPORTANT: Replace the message content with processed text

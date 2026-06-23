@@ -3,7 +3,6 @@ Setup utilities for LLMRouter scripts
 """
 
 import os
-import sys
 
 def setup_environment():
     """Setup common environment variables and paths"""
