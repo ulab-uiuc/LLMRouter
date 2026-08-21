@@ -1,0 +1,58 @@
+{
+  "qwen2.5-7b-instruct": {
+    "size": "7B",
+    "feature": "Fast efficient small model for instruction following.",
+    "input_price": 0.20,
+    "output_price": 0.20,
+    "model": "qwen/qwen2.5-7b-instruct",
+    "service": "OpenRouter"
+  },
+  "llama-3.1-8b-instruct": {
+    "size": "8B",
+    "feature": "Conversational reasoning model with reasonable cost.",
+    "input_price": 0.20,
+    "output_price": 0.20,
+    "model": "meta/llama-3.1-8b-instruct",
+    "service": "OpenRouter"
+  },
+  "mistral-7b-instruct-v0.3": {
+    "size": "7B",
+    "feature": "Fast efficient instruction-following model.",
+    "input_price": 0.20,
+    "output_price": 0.20,
+    "model": "mistralai/mistral-7b-instruct-v0.3",
+    "service": "OpenRouter"
+  },
+  "llama-3.3-nemotron-super-49b-v1": {
+    "size": "49B",
+    "feature": "Powerful high-accuracy model for complex demanding tasks.",
+    "input_price": 0.90,
+    "output_price": 0.90,
+    "model": "nvidia/llama-3.3-nemotron-super-49b-v1",
+    "service": "OpenRouter"
+  },
+  "llama3-70b-instruct": {
+    "size": "70B",
+    "feature": "Powerful large model for comprehensive understanding.",
+    "input_price": 0.90,
+    "output_price": 0.90,
+    "model": "meta/llama3-70b-instruct",
+    "service": "OpenRouter"
+  },
+  "mixtral-8x7b-instruct-v0.1": {
+    "size": "45B",
+    "feature": "Mixture of experts model optimized for creative generation.",
+    "input_price": 0.60,
+    "output_price": 0.60,
+    "model": "mistralai/mixtral-8x7b-instruct-v0.1",
+    "service": "OpenRouter"
+  },
+  "mixtral-8x22b-instruct-v0.1": {
+    "size": "141B",
+    "feature": "Advanced large-scale mixture of experts with exceptional performance.",
+    "input_price": 1.20,
+    "output_price": 1.20,
+    "model": "mistralai/mixtral-8x22b-instruct-v0.1",
+    "service": "OpenRouter"
+  }
+}

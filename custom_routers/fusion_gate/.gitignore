@@ -1,0 +1,15 @@
+# Compiled Python artifacts must not be tracked. These are build output, not
+# source, and were committed by mistake. To purge ones already tracked:
+#   git rm -r --cached custom_routers/fusion_gate/**/__pycache__
+__pycache__/
+*.pyc
+*.pyo
+
+# Eval harness runtime output. The harness writes results.csv / results.md here
+# on every run; this is build output, not source, and must never be tracked. The
+# committed, intentional report lives at eval/RESULTS.md instead.
+eval/out/
+
+# The repo root .gitignore ignores *.jsonl globally. Re-include the committed
+# eval fixtures, which are source (the offline --mock harness depends on them).
+!eval/fixtures/*.jsonl
