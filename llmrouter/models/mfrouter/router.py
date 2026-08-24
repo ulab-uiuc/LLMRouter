@@ -124,7 +124,7 @@ class MFRouter(MetaRouter):
     # ---------------------------------------------------------
     def route_single(self, query: Dict[str, Any]) -> Dict[str, Any]:
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.load_model_path = os.path.join(project_root, self.cfg["model_path"]["load_model_path"])
+        self.load_model_path = os.path.join(project_root, self.cfg["model_path"]["save_model_path"])
         model = self._load_mf_model()
 
         q_emb = self.embed_query(query["query"]).to(model.device)
@@ -162,7 +162,7 @@ class MFRouter(MetaRouter):
         """
         # Load model once
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.load_model_path = os.path.join(project_root, self.cfg["model_path"]["load_model_path"])
+        self.load_model_path = os.path.join(project_root, self.cfg["model_path"]["save_model_path"])
         model = self._load_mf_model()
 
         # Determine which data to use

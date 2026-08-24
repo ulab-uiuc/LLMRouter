@@ -50,7 +50,7 @@ class HybridLLMRouter(MetaRouter):
         # -------------------------------
         # Determine smallest / largest LLM
         # -------------------------------
-        self.small_model_name, self.large_model_name = self._resolve_small_large()
+        self.small_model_name, self.large_model_name = self._resolve_small_large(self.routing_data_train)
         print(
             f"[HybridLLMRouter] Mode={self.router_mode}, "
             f"Small='{self.small_model_name}', Large='{self.large_model_name}'"
@@ -67,7 +67,7 @@ class HybridLLMRouter(MetaRouter):
     # ==============================================================
     # Compute smallest and largest models from llm_data
     # ==============================================================
-    def _resolve_small_large(self):
+    def _resolve_small_large(self, routing_data=None):
         if not hasattr(self, "llm_data") or not self.llm_data:
             raise ValueError("[HybridLLMRouter] llm_data missing.")
 
@@ -81,6 +81,17 @@ class HybridLLMRouter(MetaRouter):
 
         if len(available) < 2:
             raise ValueError("[HybridLLMRouter] Need at least 2 models (size ends with B).")
+
+        # Filter models to only those that exist in routing_data (if provided)
+        if routing_data is not None and not routing_data.empty:
+            available_in_data = routing_data["model_name"].unique().tolist()
+            available = [m for m in available if m in available_in_data]
+            if len(available) < 2:
+                raise ValueError(
+                    f"[HybridLLMRouter] Only found {len(available)} models with routing data. "
+                    f"Need at least 2 models that exist in routing_data."
+                )
+            print(f"[HybridLLMRouter] Filtered to {len(available)} models with routing data.")
 
         sorted_models = sorted(
             available,

@@ -15,7 +15,7 @@ model_path:
   save_model_path: 'saved_models/knnmultiroundrouter/knnmultiroundrouter.pkl'
 
 # Configuration for full pipeline processing
-base_model: 'Qwen/Qwen2.5-3B-Instruct'  # Model for decomposition and aggregation
+base_model: 'qwen/qwen2.5-7b-instruct'  # Model for decomposition and aggregation
 use_local_llm: false  # Set to true to use vLLM for local inference (requires vLLM installed)
 api_endpoint: 'https://integrate.api.nvidia.com/v1'  # API endpoint for execution
 api_key: null  # API key (can also be set via environment variable API_KEYS)

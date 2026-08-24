@@ -108,7 +108,7 @@ class KNNMultiRoundRouter(MetaRouter):
         # Construct model path dynamically (only when needed, not during __init__)
         # This allows training to work when load_model_path doesn't exist in config
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        load_model_path = self.cfg.get("model_path", {}).get("load_model_path")
+        load_model_path = self.cfg.get("model_path", {}).get("save_model_path")
         
         if not load_model_path:
             raise RuntimeError(

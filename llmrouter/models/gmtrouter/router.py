@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import os
 import json
 import torch
+import torch.nn as nn
 import numpy as np
 
 from llmrouter.models.meta_router import MetaRouter
@@ -58,7 +59,8 @@ class GMTRouter(MetaRouter):
         Args:
             yaml_path: Path to YAML configuration file
         """
-        super().__init__(yaml_path=yaml_path)
+        dummy_model = nn.Identity()
+        super(GMTRouter, self).__init__(model=dummy_model, yaml_path=yaml_path)
 
         # GMTRouter-specific configuration
         self.gmt_config = self.cfg.get("gmt_config", {})

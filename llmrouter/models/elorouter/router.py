@@ -46,7 +46,7 @@ class EloRouter(MetaRouter):
             return
 
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        load_path = os.path.join(project_root, self.cfg["model_path"]["load_model_path"])
+        load_path = os.path.join(project_root, self.cfg["model_path"]["save_model_path"])
 
         elo_obj = load_model(load_path)
 

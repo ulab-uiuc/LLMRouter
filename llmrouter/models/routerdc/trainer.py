@@ -152,6 +152,7 @@ class DCTrainer(BaseTrainer):
         # Ensure model is on the correct device
         self.router = self.router.to(self.device)
         self.router.train()
+        self.loss_history = []
 
         # Create dataloader
         train_dataloader = DataLoader(
@@ -202,6 +203,7 @@ class DCTrainer(BaseTrainer):
 
                 # Update statistics
                 losses.update(loss.item(), scores.size(0))
+                self.loss_history.append(loss.item())
                 pbar.set_postfix({"step": f"{step}", "loss": f"{loss.item():.4f}"})
                 pbar.update(1)
 
