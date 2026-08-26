@@ -58,10 +58,12 @@ class ChatRequest(BaseModel):
 class RouterAdapter:
     """LLMRouter adapter"""
 
-    def __init__(self, router_name: str, config_path: Optional[str] = None):
+    def __init__(self, router_name: str, config_path: Optional[str] = None, fail_on_error: bool = False):
         self.router_name = router_name
         self.config_path = config_path
+        self.fail_on_error = fail_on_error
         self.router = None
+        self.last_router_info = None
         self._load_router()
 
     def _load_router(self):
@@ -107,6 +109,13 @@ class RouterAdapter:
         try:
             result = self.router.route_single({"query": query})
             model_name = result.get("model_name") or result.get("predicted_llm")
+            self.last_router_info = {
+                "method": result.get("method"),
+                "routing_reason": result.get("routing_reason"),
+                "routing_signals": result.get("routing_signals"),
+                "routing_confidence": result.get("routing_confidence"),
+                "routing_judge_latency_ms": result.get("routing_judge_latency_ms"),
+            }
 
             # Check if model is available
             if model_name in available_models:
@@ -121,7 +130,10 @@ class RouterAdapter:
             return available_models[0]
 
         except Exception as e:
-            print(f"[Router] Error: {e}")
+            self.last_router_info = {"error": f"{type(e).__name__}: {e}"}
+            print(f"[Router] Error: {type(e).__name__}: {e}")
+            if self.fail_on_error:
+                raise
             return available_models[0]
 
 
@@ -232,7 +244,8 @@ def create_app(config: ServeConfig = None, config_path: str = None) -> FastAPI:
     # Initialize components
     router_adapter = RouterAdapter(
         router_name=config.router_name,
-        config_path=config.router_config_path
+        config_path=config.router_config_path,
+        fail_on_error=config.fail_on_routing_error
     )
     llm_backend = LLMBackend(config)
 
@@ -267,8 +280,25 @@ def create_app(config: ServeConfig = None, config_path: str = None) -> FastAPI:
         # Select model
         available_models = list(config.llms.keys())
         if request.model == "auto" or request.model not in available_models:
-            selected_model = router_adapter.route(user_query, available_models)
-            print(f"[Router] Query: '{user_query[:50]}...' -> {selected_model}")
+            try:
+                selected_model = router_adapter.route(user_query, available_models)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"routing failed: {type(e).__name__}: {e}")
+            info = router_adapter.last_router_info or {}
+            reason = info.get("routing_reason")
+            signals = info.get("routing_signals")
+            confidence = info.get("routing_confidence")
+            judge_ms = info.get("routing_judge_latency_ms")
+            extra = ""
+            if reason:
+                extra += f" reason={reason}"
+            if signals:
+                extra += f" signals={signals}"
+            if confidence is not None:
+                extra += f" confidence={confidence}"
+            if judge_ms is not None:
+                extra += f" judge_ms={judge_ms}"
+            print(f"[Router] Query: '{user_query[:50]}...' -> {selected_model}{extra}")
         else:
             selected_model = request.model
 
