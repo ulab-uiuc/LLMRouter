@@ -306,6 +306,28 @@ def _build_chat_url(base_url: str, chat_path: str) -> str:
     return f"{(base_url or '').rstrip('/')}{path}"
 
 
+def _build_fallback_chain(
+    selected_model: str,
+    available_models: List[str],
+    fallback_models: List[str],
+) -> List[str]:
+    """Ordered, de-duplicated list of models to try: the routed model first,
+    then any configured fallbacks that are actually available."""
+    chain = [selected_model]
+    for name in fallback_models:
+        if name in available_models and name not in chain:
+            chain.append(name)
+    return chain
+
+
+async def _prepend_chunk(first_chunk: Optional[str], rest: AsyncGenerator) -> AsyncGenerator:
+    """Re-attach a chunk already pulled off `rest` back onto the stream."""
+    if first_chunk is not None:
+        yield first_chunk
+    async for item in rest:
+        yield item
+
+
 # ============================================================
 # LLM Backend
 # ============================================================
@@ -422,9 +444,7 @@ class LLMBackend:
             ) as resp:
                 if resp.status_code != 200:
                     error = await resp.aread()
-                    print(f"[Backend Streaming] Error {resp.status_code}: {error.decode()[:200]}")
-                    yield f'data: {json.dumps({"error": error.decode()[:200]})}\n\n'
-                    return
+                    raise HTTPException(status_code=resp.status_code, detail=error.decode()[:200])
 
                 async for line in resp.aiter_lines():
                     if line.startswith("data: "):
@@ -533,9 +553,14 @@ def create_app(config: OpenClawConfig = None, config_path: str = None) -> FastAP
             selected_model = request.model
             print(f"[Specified] Query: '{user_query}' -> {selected_model}")
 
+        fallback_chain = _build_fallback_chain(
+            selected_model, available_models, config.router.fallback_models
+        )
+
         # Handle streaming
         if request.stream:
             async def generate():
+                nonlocal selected_model
                 prefix_sent = False
                 content_buffer = ""
                 buffered_chunks = []
@@ -562,14 +587,41 @@ def create_app(config: OpenClawConfig = None, config_path: str = None) -> FastAP
                 try:
                     prefix_disabled = False
 
-                    stream_gen = await backend.call(
-                        selected_model, messages, request.max_tokens,
-                        request.temperature, stream=True,
-                        tools=request.tools,
-                        tool_choice=request.tool_choice,
-                        stream_options=request.stream_options,
-                    )
-                    async for chunk in stream_gen:
+                    stream_gen = None
+                    first_chunk = None
+                    last_error = None
+                    for i, candidate in enumerate(fallback_chain):
+                        try:
+                            candidate_gen = await backend.call(
+                                candidate, messages, request.max_tokens,
+                                request.temperature, stream=True,
+                                tools=request.tools,
+                                tool_choice=request.tool_choice,
+                                stream_options=request.stream_options,
+                            )
+                            # Probe the connection before committing to this
+                            # candidate, so a failed attempt never reaches the
+                            # client and we can still fall back.
+                            try:
+                                first_chunk = await candidate_gen.__anext__()
+                            except StopAsyncIteration:
+                                first_chunk = None
+                            stream_gen = candidate_gen
+                            selected_model = candidate
+                            if i > 0:
+                                print(f"[Fallback] '{fallback_chain[0]}' failed; streaming from '{candidate}' instead.")
+                            break
+                        except Exception as error:
+                            last_error = error
+                            print(f"[Fallback] Model '{candidate}' failed: {error}")
+
+                    if stream_gen is None:
+                        yield f'data: {json.dumps({"error": str(last_error)})}\n\n'
+                        yield "data: [DONE]\n\n"
+                        return
+
+                    combined_stream = _prepend_chunk(first_chunk, stream_gen)
+                    async for chunk in combined_stream:
                         if not config.show_model_prefix:
                             yield chunk
                             continue
@@ -664,11 +716,25 @@ def create_app(config: OpenClawConfig = None, config_path: str = None) -> FastAP
             return StreamingResponse(generate(), media_type="text/event-stream")
 
         else:
-            result = await backend.call(
-                selected_model, messages, request.max_tokens,
-                request.temperature, stream=False,
-                tools=request.tools, tool_choice=request.tool_choice
-            )
+            result = None
+            last_error = None
+            for i, candidate in enumerate(fallback_chain):
+                try:
+                    result = await backend.call(
+                        candidate, messages, request.max_tokens,
+                        request.temperature, stream=False,
+                        tools=request.tools, tool_choice=request.tool_choice
+                    )
+                    selected_model = candidate
+                    if i > 0:
+                        print(f"[Fallback] '{fallback_chain[0]}' failed; served by '{candidate}' instead.")
+                    break
+                except Exception as error:
+                    last_error = error
+                    print(f"[Fallback] Model '{candidate}' failed: {error}")
+
+            if result is None:
+                raise last_error
 
             # Add model prefix
             if config.show_model_prefix and result.get("choices"):

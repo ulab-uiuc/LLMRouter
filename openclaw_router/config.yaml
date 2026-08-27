@@ -15,6 +15,12 @@ router:
   base_url: https://api.together.xyz/v1
   model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"  # small model for routing decisions
 
+  # Optional: if the routed model's API call fails (provider down, rate
+  # limited, etc.), retry with these models in order before erroring out.
+  # fallback_models:
+  #   - qwen-2.5-7b
+  #   - llama-3.1-8b
+
 # IMPORTANT:
 # - NVIDIA supports key rotation via list.
 # - Other providers accept string key; list is also accepted but only the first valid key is used.

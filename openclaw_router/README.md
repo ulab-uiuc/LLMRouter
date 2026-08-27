@@ -479,6 +479,20 @@ router:
   model_path: saved_models/knnrouter.pt  # optional
 ```
 
+### Model Fallback
+
+If the model chosen by the router fails to respond (the provider is down, rate-limited, or returns an error), the server can retry the request against other configured models before giving up. Set an ordered list under `router.fallback_models`; the server tries each one in turn, skipping the model that already failed:
+
+```yaml
+router:
+  strategy: llm
+  fallback_models:
+    - llama-3.1-8b
+    - qwen-2.5-7b
+```
+
+Only names present in `llms` are used. If `fallback_models` is empty or omitted, behavior is unchanged: a failed call returns an error immediately.
+
 ## Routing Strategies (Built-in + Original LLMRouter)
 
 OpenClaw Router supports two routing families:

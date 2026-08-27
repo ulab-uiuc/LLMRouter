@@ -73,6 +73,12 @@ class RouterConfig:
     llmrouter_config: Optional[str] = None  # Path to router config
     llmrouter_model_path: Optional[str] = None  # Path to trained model
 
+    # Ordered list of model names to retry, in order, if the model selected by
+    # the routing strategy fails to respond (e.g. the provider is down or
+    # rate-limited). Models not present in `llms` are ignored. Empty by
+    # default, which preserves the previous behavior of failing the request.
+    fallback_models: List[str] = field(default_factory=list)
+
 
 @dataclass
 class MemoryConfig:
@@ -216,6 +222,7 @@ class OpenClawConfig:
             llmrouter_name=router_data.get("llmrouter", {}).get("name") or router_data.get("name"),
             llmrouter_config=router_data.get("llmrouter", {}).get("config_path") or router_data.get("config_path"),
             llmrouter_model_path=router_data.get("llmrouter", {}).get("model_path") or router_data.get("model_path"),
+            fallback_models=list(router_data.get("fallback_models", []) or []),
         )
 
         # Memory settings
