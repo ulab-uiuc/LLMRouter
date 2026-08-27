@@ -217,7 +217,10 @@ User query: {query}"""
             )
 
             if response.status_code != 200:
-                _safe_log(f"[Router] LLM API error: {response.status_code}")
+                _safe_log(
+                    f"[Router] Warning: LLM API error {response.status_code}; "
+                    f"falling back to '{models[0]}'"
+                )
                 return models[0]
 
             result = response.json()
@@ -236,6 +239,10 @@ User query: {query}"""
                 if model_name.lower() in choice or choice in model_name.lower():
                     return model_name
 
+            _safe_log(
+                f"[Router] Warning: LLM router returned unrecognized model '{choice}'; "
+                f"falling back to '{models[0]}'"
+            )
             return models[0]
 
     except Exception as error:  # pragma: no cover - network/runtime dependent
@@ -420,6 +427,10 @@ class LLMRouterAdapter:
         if not available_models:
             return "default"
         if self.router is None:
+            _safe_log(
+                "[Router] Warning: no LLMRouter model loaded; "
+                "randomly selecting a model instead of routing."
+            )
             return random.choice(available_models)
 
         try:
@@ -439,10 +450,18 @@ class LLMRouterAdapter:
                     if model_name.lower() in candidate.lower() or candidate.lower() in model_name.lower():
                         return candidate
 
+            _safe_log(
+                f"[Router] Warning: router '{self.router_name}' returned "
+                f"no matching model (got {model_name!r}); "
+                "randomly selecting a fallback."
+            )
             return random.choice(available_models)
 
         except Exception as error:
-            _safe_log(f"[Router] Error: {error}")
+            _safe_log(
+                f"[Router] Warning: router '{self.router_name}' raised "
+                f"{type(error).__name__}: {error}; randomly selecting a fallback."
+            )
             return random.choice(available_models)
 
 
