@@ -8,7 +8,7 @@ reward.
 ## Quick start
 
 ```bash
-# 1. Get the data (HF_TOKEN needed while the dataset repo is private)
+# 1. Get the data (the dataset is public, no token needed)
 python download_data.py
 
 # 2. Generate query embeddings (Qwen3-Embedding-0.6B, needs one GPU)

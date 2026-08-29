@@ -10,7 +10,6 @@ plus the shared candidate pool:
 Usage:
     python download_data.py                    # all datasets
     python download_data.py --datasets video memory_locomo
-    HF_TOKEN=hf_xxx python download_data.py    # token needed while the repo is private
 """
 
 import argparse
