@@ -79,7 +79,13 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True,
                                               padding_side="left")
     model = AutoModel.from_pretrained(MODEL_NAME, trust_remote_code=True)
-    model = model.to(args.device).eval()
+    # Pin the dtype rather than inherit it. transformers 4.x loaded in float32 whatever the
+    # checkpoint declared; transformers 5.x honours the checkpoint, and
+    # Qwen3-Embedding-0.6B declares bfloat16. numpy has no bfloat16, so the saved tensors
+    # then take down every router that reaches sklearn through .numpy().
+    # Cast rather than pass a dtype argument, because the keyword was renamed between the
+    # two versions this package supports.
+    model = model.to(args.device).to(torch.float32).eval()
 
     for ds in args.datasets:
         for split in ("train", "test"):
