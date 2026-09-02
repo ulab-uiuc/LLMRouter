@@ -267,6 +267,54 @@ export API_KEYS='{"Ollama": ""}'
 
 **Important**: Use the `/v1` endpoint (OpenAI-compatible), not the native API endpoints. Empty strings are automatically detected for localhost endpoints (`localhost` or `127.0.0.1`).
 
+### 🔀 Using Eden AI (OpenAI-Compatible Gateway)
+
+LLMRouter can route to models served through [Eden AI](https://www.edenai.co/), a unified gateway that exposes many model providers behind a single OpenAI-compatible API. No Eden AI-specific code is required - it is configured like any other OpenAI-compatible service, using the `service`, `api_endpoint`, and `model` fields of your LLM candidate JSON:
+
+| Field | Value |
+|-------|-------|
+| `service` | `"EdenAI"` (must match the key you use in `API_KEYS`) |
+| `api_endpoint` | `"https://api.edenai.run/v3"` |
+| `model` | The Eden AI model identifier you want to use, in `<provider>/<model>` form |
+
+**1. Set your Eden AI API key.** A single key serves every Eden AI-backed candidate you define, so only one `API_KEYS` entry is needed:
+
+```bash
+export API_KEYS='{"EdenAI": "your-eden-ai-key"}'
+```
+
+**2. Define your own candidates.** LLMRouter does not ship a fixed list of Eden AI models - you decide which models to route between and add one entry per model. Replace every placeholder below with the model you want to route and evaluate, and with the size, description, and per-million-token prices that apply to it:
+
+```json
+{
+  "<your-candidate-name>": {
+    "size": "<model size>",
+    "feature": "<description of the model, used to generate LLM embeddings>",
+    "input_price": <your input price>,
+    "output_price": <your output price>,
+    "model": "<provider>/<model>",
+    "service": "EdenAI",
+    "api_endpoint": "https://api.edenai.run/v3"
+  }
+}
+```
+
+Point your router config at this file via `data_path.llm_data`, and for routers that use LLM embeddings, generate them from your own `feature` descriptions:
+
+```bash
+python llmrouter/data/generate_llm_embeddings.py \
+    --input <your_llm_candidates>.json \
+    --output <your_llm_embeddings>.json
+```
+
+**3. Discover model identifiers.** Rather than relying on a fixed list, query Eden AI's model listing endpoint and use the returned identifiers as the `model` values above:
+
+```bash
+curl https://api.edenai.run/v3/models
+```
+
+**Recommended**: use explicit `<provider>/<model>` identifiers. When a model is named without a provider prefix, Eden AI chooses the upstream provider itself, which means a candidate no longer corresponds to one fixed model. Prefixed identifiers keep each candidate deterministic, so routing decisions, cost, and performance stay attributable per model - which is also why Eden AI's own dynamic routing is not a good fit as a single LLMRouter candidate: selecting between models is what LLMRouter itself does.
+
 ### 🧪 Testing Model Availability
 
 You can test the availability of different candidate models using the following curl commands. This is useful for verifying that your API keys work correctly and that specific models are accessible:
