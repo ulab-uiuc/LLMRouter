@@ -233,6 +233,8 @@ python llmrouter/data/api_calling_evaluation.py --config llmrouter/data/sample_c
 
 **Note on `api_endpoint`**: Required field specifying the base URL for API calls. If not specified here, routers fall back to `api_endpoint` in their YAML config. If neither exists, an error is raised. This allows different models to use different API providers. See [main README](../README.md#configuring-api-endpoints-) for details.
 
+**Note on OpenAI-compatible gateways**: Gateways are configured with the same fields - set `service` to the name used in `API_KEYS`, `api_endpoint` to the gateway base URL (e.g. `https://api.edenai.run/v3` for Eden AI), and `model` to the gateway's own model identifier (e.g. `<provider>/<model>`). See [main README](../README.md#-using-eden-ai-openai-compatible-gateway) for a full Eden AI example.
+
 **Example**:
 ```json
 {
