@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+import json
 
 from llmrouter.models.base_trainer import BaseTrainer
 from llmrouter.utils import save_model, load_model
@@ -76,7 +77,7 @@ class MLPTrainer(BaseTrainer):
                     print(f"[MLPTrainer] Loaded initial model from {self.ini_model_path}")
             except Exception as e:
                 print(f"[MLPTrainer] Could not load initial model: {e}")
-
+        self.loss_history = []
         # Prepare data
         X = self.query_embeddings.float().to(self.device)
         y = self.label_indices.to(self.device)
@@ -106,6 +107,7 @@ class MLPTrainer(BaseTrainer):
                 epoch_losses.append(loss.item())
 
             avg_loss = np.mean(epoch_losses)
+            self.loss_history.append(avg_loss)
 
             # Print progress every 10 epochs or at the end
             if (epoch + 1) % 10 == 0 or epoch == self.epochs - 1:
@@ -122,6 +124,10 @@ class MLPTrainer(BaseTrainer):
         os.makedirs(os.path.dirname(self.save_model_path), exist_ok=True)
         save_model(self.model.state_dict(), self.save_model_path)
         print(f"[MLPTrainer] Model saved to {self.save_model_path}")
+        loss_path = self.save_model_path.replace('.pth', '_loss.json').replace('.pkl', '_loss.json')
+        with open(loss_path, 'w') as f:
+            json.dump(self.loss_history, f)
+        print(f"[MLPTrainer] Loss history saved to {loss_path}")
 
     def evaluate(self):
         """

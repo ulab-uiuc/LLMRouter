@@ -31,3 +31,5 @@ hparam:
   epochs: 100                     # Number of training epochs
   batch_size: 32                  # Batch size for training
   alpha: 0.0001                   # L2 regularization (weight decay)
+
+api_endpoint: ''
