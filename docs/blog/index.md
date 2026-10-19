@@ -25,3 +25,10 @@ hide:
 ---
 
 --8<-- "docs/blog/llmrouter-unified-routing.md:26:"
+
+
+## LLMRouter in everyday work
+
+Bring LLMRouter into office and coding workflows with WorkBuddy and Codex.
+
+[Read in English](agent-integrations/en.html) · [阅读中文版](agent-integrations/index.html)
