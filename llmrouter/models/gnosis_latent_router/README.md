@@ -1,20 +1,35 @@
 # Multi-Head Latent Control (MHLC) router
 
-**When should a small model hand a question to a larger one?** MHLC's Capability Head reads the hidden states of the small model’s answer and gives it a score between 0 and 1. LLMRouter keeps the answer when the score meets the threshold. Below the threshold, it sends the original question to the fallback model.
+**Can the small model answer this one correctly?** Multi-Head Latent Control (MHLC) lets the small model answer first. A lightweight **Capability Head** reads the hidden states of that answer and estimates how likely it is to be correct. When the score meets your threshold, LLMRouter returns the answer it already has. When the score falls below it, the larger model gets the original question.
 
-[Paper results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU smoke test](#run-a-two-question-gpu-smoke-test) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
+**Train only the head.** Give it examples of the small model’s answers and their correctness scores. The included Qwen3.5-4B recipe updates **2.86M parameters** and keeps the backbone frozen. At inference, the same vLLM engine replays the completed chat once to read the hidden states. The head produces one score between 0 and 1 without a separate LLM judge. An accepted answer needs no call to the larger model.
+
+[Paper results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU quickstart](#gpu-quickstart) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
 
 ![MHLC architecture showing the Capability Head for model handoff and the Resolution Head for choosing how an agent responds.](assets/mhlc-overview.png)
 
-*Figure 1 from the revised MHLC manuscript.* This integration implements the **Capability Head**. The frozen target model generates one candidate answer, then the same vLLM engine replays the completed chat to extract the hidden states used for scoring. [arXiv preprint](https://arxiv.org/abs/2607.14277) · [Original implementation](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
+*Figure 1 from the revised MHLC manuscript.* The diagram shows both MHLC heads. LLMRouter uses the Capability Head for the handoff decision. [arXiv preprint](https://arxiv.org/abs/2607.14277) · [Original implementation](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
 
 ## Routing results from the paper
 
-Across six benchmarks, Qwen3.5-4B scored **62.3%** on its own. Routing to Qwen3.5-27B-Thinking with the Capability Head raised the score to **71.5%**, within **0.8 percentage points** of always using the larger model (**72.3%**). On average, **52.7%** of questions went to the larger model.
+Across six benchmarks covering chart reading, visual math, visual question answering, GUI grounding, and general knowledge, MHLC brought Qwen3.5-4B within **0.8 percentage points** of always using Qwen3.5-27B-Thinking. On average, **47.3%** of questions stayed with the 4B model.
+
+| Routing method | Mean score | Mean share sent to 27B |
+| --- | ---: | ---: |
+| Qwen3.5-4B alone | 62.3% | 0.0% |
+| MLPRouter | 64.8% | 35.3% |
+| RouterDC | 65.7% | 44.9% |
+| **MHLC Capability Head** | **71.5%** | **52.7%** |
+| Skywork ORM-8B | 71.7% | 90.6% |
+| Qwen3.5-27B-Thinking alone | 72.3% | 100.0% |
+
+The same comparison on Gemma covered five benchmarks. With Gemma-4B and Gemma-31B-Thinking, MHLC **matched Skywork ORM-8B’s 68.0% score** and sent **71.6%** of questions to the larger model on average, compared with Skywork’s **88.0%**.
 
 ![Table 2 compares task scores and escalation rates for Qwen and Gemma. Across the five Gemma benchmarks, the Capability Head scored 68.0% at 71.6% mean escalation. Always using the larger model scored 69.8%.](assets/mhlc-routing-results.png)
 
 *Table 2 from the revised MHLC manuscript.* Each task column gives the score and escalation rate, averaged over three runs. The overall columns weight each benchmark equally. The paper used a Capability Head threshold of 0.8. [Open the full-size table](assets/mhlc-routing-results.png)
+
+**What does scoring cost?** The revised manuscript (p. 8) measured its roughly 5M-parameter head at **4.11 ms per answer** with cached hidden states, compared with **104.18 ms** for the Skywork ORM-8B verifier. Both timings used one A100 80 GB, batch size one, and 12 examples. In this integration, the local vLLM replay adds feature-extraction time before the head runs.
 
 The LLMRouter example below benchmarks Qwen3.5-4B with a Qwen3.5-9B fallback on TriviaQA and starts with a threshold of 0.5.
 
@@ -30,9 +45,9 @@ python -m pip install -e ".[gnosis]"
 
 The full preset loads Qwen3.5-4B for generation and training, a 30B-A3B FP8 judge for labels requiring judgment, and Qwen3.5-9B as the benchmark fallback. Select hardware that supports the judge's dtype or set `--judge-model-id` and `--judge-revision` to an appropriate instruction model and record that choice with your results. Use `HF_HOME` to place model and dataset downloads on a disk with sufficient space. All pipeline commands use the active Python interpreter unless `pipeline.python` is set.
 
-## Run a two-question GPU smoke test
+## GPU quickstart
 
-This example builds a small Qwen3.5 model whose answer is always `4`. It generates completions for `2 + 2` and `2 + 3`, grades them, trains the head, and routes a third question. The expected labels are 1 and 0. Only the tokenizer and model configuration are downloaded. Use held-out labeled data to measure routing quality.
+Try the whole pipeline with two labeled answers. The example builds a tiny Qwen3.5 model that always answers `4`. It gets `2 + 2` right and `2 + 3` wrong. The example grades both answers, trains the head, and then shows its routing decision for a third question. It downloads only the tokenizer and model configuration.
 
 ```bash
 work=$(mktemp -d)
