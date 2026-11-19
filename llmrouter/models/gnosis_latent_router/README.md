@@ -14,14 +14,16 @@
 
 Across six benchmarks covering chart reading, visual math, visual question answering, GUI grounding, and general knowledge, MHLC brought Qwen3.5-4B within **0.8 percentage points** of always using Qwen3.5-27B-Thinking. On average, **47.3%** of questions stayed with the 4B model.
 
-| Routing method | Mean score | Mean share sent to 27B |
+| Routing method | Answer quality (score out of 100) | Questions sent to the larger model (Qwen3.5-27B) |
 | --- | ---: | ---: |
-| Qwen3.5-4B alone | 62.3% | 0.0% |
-| MLPRouter | 64.8% | 35.3% |
-| RouterDC | 65.7% | 44.9% |
-| **MHLC Capability Head** | **71.5%** | **52.7%** |
-| Skywork ORM-8B | 71.7% | 90.6% |
-| Qwen3.5-27B-Thinking alone | 72.3% | 100.0% |
+| Qwen3.5-4B alone | 62.3 | 0.0% |
+| MLPRouter | 64.8 | 35.3% |
+| RouterDC | 65.7 | 44.9% |
+| **MHLC Capability Head** | **71.5** | **52.7%** |
+| Skywork ORM-8B | 71.7 | 90.6% |
+| Qwen3.5-27B-Thinking alone | 72.3 | 100.0% |
+
+Each of the six benchmarks counts equally in both columns.
 
 The same comparison on Gemma covered five benchmarks. With Gemma-4B and Gemma-31B-Thinking, MHLC **matched Skywork ORM-8B’s 68.0% score** and sent **71.6%** of questions to the larger model on average, compared with Skywork’s **88.0%**.
 
