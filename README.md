@@ -86,7 +86,6 @@
 | `hybrid_llm` | ✅ | ✅ | Hybrid LLM routing strategy | [📖](llmrouter/models/hybrid_llm/README.md) |
 | `graphrouter` | ✅ | ✅ | Graph-based routing | [📖](llmrouter/models/graphrouter/README.md) |
 | `causallm_router` | ✅ | ✅ | Causal Language Model router | [📖](llmrouter/models/causallm_router/README.md) |
-| `gnosis_latent_router` | ✅ | ✅ | Multi-Head Latent Control (MHLC) capability scoring and selective escalation | [📖](llmrouter/models/gnosis_latent_router/README.md) |
 | `smallest_llm` | N/A | ✅ | Always routes to smallest model | [📖](llmrouter/models/smallest_llm/README.md) |
 | `largest_llm` | N/A | ✅ | Always routes to largest model | [📖](llmrouter/models/largest_llm/README.md) |
 
@@ -112,19 +111,6 @@
 | `knnmultiroundrouter` | ✅ | ✅ | KNN-based agentic router for complex tasks | [📖](llmrouter/models/knnmultiroundrouter/README.md) |
 | `llmmultiroundrouter` | N/A | ✅ | LLM-based agentic router for complex tasks | [📖](llmrouter/models/llmmultiroundrouter/README.md) |
 
-<details>
-<summary><strong>Multi-Head Latent Control (MHLC)</strong> · How the Capability Head routes an answer</summary>
-
-The target model answers first. A lightweight head scores the hidden states of its answer to decide whether to return it or send the question to a larger model.
-
-![MHLC paper overview showing the Capability Head used for routing and the companion Resolution Head.](llmrouter/models/gnosis_latent_router/assets/mhlc-overview.png)
-
-Across six benchmarks in the revised MHLC manuscript, routing from Qwen3.5-4B to Qwen3.5-27B-Thinking scored **71.5%** with **52.7% mean escalation**. Always using the larger model scored **72.3%**. [Results by benchmark](llmrouter/models/gnosis_latent_router/README.md#routing-results-from-the-paper)
-
-[Two-question GPU smoke test](llmrouter/models/gnosis_latent_router/README.md#run-a-two-question-gpu-smoke-test) · [Generate data and train a head](llmrouter/models/gnosis_latent_router/README.md#run-the-mixed-source-pipeline) · [Route a question](llmrouter/models/gnosis_latent_router/README.md#route-a-question)
-
-</details>
-
 ## 🚀 Get Started
 
 ### Installation
@@ -149,10 +135,7 @@ pip install -e .
 # RouterR1 is tested with vllm==0.6.3 (torch==2.4.0); the extra pins these versions.
 pip install -e ".[router-r1]"
 
-# Optional: Install MHLC training and inference in a dedicated CUDA environment
-pip install -e ".[gnosis]"
-
-# Optional: Install the legacy RouterR1 dependency bundle
+# Optional: Install all optional dependencies
 pip install -e ".[all]"
 ```
 
@@ -988,26 +971,3 @@ If you find LLMRouter useful for your research or projects, please cite it as:
   year={2026}
 }
 ```
-
-<details>
-<summary>Using the MHLC router? Cite MHLC and Gnosis</summary>
-
-The MHLC paper introduces the Capability Head used by this router. Gnosis, accepted to **EACL 2027**, studies how a model’s internal signals predict whether its answer is correct. [MHLC paper](https://arxiv.org/abs/2607.14277) · [Gnosis paper](https://arxiv.org/abs/2512.20578)
-
-```bibtex
-@article{ghasemabadi2026multi,
-  title={Multi-Head Latent Control: A Unified Interface for LLM Agent Decision Making},
-  author={Ghasemabadi, Amirhosein and Chen, Ruichen and Rashidi, Bahador and Niu, Di},
-  journal={arXiv preprint arXiv:2607.14277},
-  year={2026}
-}
-
-@article{ghasemabadi2025can,
-  title={Can LLMs predict their own failures? Self-awareness via internal circuits},
-  author={Ghasemabadi, Amirhosein and Niu, Di},
-  journal={arXiv preprint arXiv:2512.20578},
-  year={2025}
-}
-```
-
-</details>
