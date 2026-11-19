@@ -1,12 +1,26 @@
 # Multi-Head Latent Control (MHLC) router
 
-MHLC generates a candidate answer with a frozen target model. Its Capability Head reads the hidden states of the completed answer and estimates an adequacy score in `[0, 1]`. LLMRouter returns the candidate when `score >= threshold`. A lower score routes the original question to the configured fallback. The target generates the answer once and shares its resident vLLM engine with the scoring pass. [MHLC paper](https://arxiv.org/abs/2607.14277) · [Original implementation](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
+**When should a small model hand a question to a larger one?** MHLC's Capability Head reads the hidden states of the small model’s answer and gives it a score between 0 and 1. LLMRouter keeps the answer when the score meets the threshold. Below the threshold, it sends the original question to the fallback model.
 
-The Qwen3.5-4B preset covers mixed-source generation, correctness labeling, head training, routing inference, and a two-model TriviaQA benchmark. The registered router is `gnosis_latent_router`, with the short alias `mhlc`. The examples below run from an LLMRouter checkout.
+[Paper results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU smoke test](#run-a-two-question-gpu-smoke-test) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
+
+![MHLC architecture showing the Capability Head for model handoff and the Resolution Head for choosing how an agent responds.](assets/mhlc-overview.png)
+
+*Figure 1 from the revised MHLC manuscript.* This integration implements the **Capability Head**. The frozen target model generates one candidate answer, then the same vLLM engine replays the completed chat to extract the hidden states used for scoring. [arXiv preprint](https://arxiv.org/abs/2607.14277) · [Original implementation](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
+
+## Routing results from the paper
+
+Across six benchmarks, Qwen3.5-4B scored **62.3%** on its own. Routing to Qwen3.5-27B-Thinking with the Capability Head raised the score to **71.5%**, within **0.8 percentage points** of always using the larger model (**72.3%**). On average, **52.7%** of questions went to the larger model.
+
+![Table 2 compares task scores and escalation rates for Qwen and Gemma. Across the five Gemma benchmarks, the Capability Head scored 68.0% at 71.6% mean escalation. Always using the larger model scored 69.8%.](assets/mhlc-routing-results.png)
+
+*Table 2 from the revised MHLC manuscript.* Each task column gives the score and escalation rate, averaged over three runs. The overall columns weight each benchmark equally. The paper used a Capability Head threshold of 0.8. [Open the full-size table](assets/mhlc-routing-results.png)
+
+The LLMRouter example below benchmarks Qwen3.5-4B with a Qwen3.5-9B fallback on TriviaQA and starts with a threshold of 0.5.
 
 ## Installation
 
-Use a Linux CUDA environment with a vLLM-compatible GPU. Install the GPU extra in its own environment because the RouterR1 extra pins a different vLLM version. Python 3.12 is used in the example.
+Run the examples below from an LLMRouter checkout on Linux with a vLLM-compatible CUDA GPU. The registered router name is `gnosis_latent_router` and its CLI alias is `mhlc`. Install its GPU extra in a dedicated environment because RouterR1 pins a different vLLM version.
 
 ```bash
 python3.12 -m venv venv
@@ -77,3 +91,23 @@ Choose the threshold on held-out questions from the intended deployment. A highe
 - **Checkpoint compatibility.** Use a checkpoint produced by this vLLM trainer. The public paper heads use Transformers/Unsloth hidden states, which differ from vLLM's extracted features. Use the original implementation for those weights. The router reads the trained layer selection and token mask from the checkpoint. Version 2 scores answer tokens with the training template and image settings. Existing vLLM version 1 heads retain their original masking behavior. [Source and adaptations](backend/VENDORED_SOURCE.md)
 
 The vLLM connector writes temporary tensors to shared memory and the reader removes them after scoring. Set `GNOSIS_HIDDEN_STATES_DIR` to a fast writable filesystem when shared memory is limited. Set `inference.sampling.max_new_tokens` to cap target generation and `--max-tokens` on the inference command to cap the fallback response. [Full pipeline config](../../../configs/model_config_train/gnosis_qwen35_4b.yaml)
+
+## Citing MHLC and Gnosis
+
+Cite MHLC for the Capability Head and routing experiments. Cite Gnosis for the earlier work on predicting answer correctness from internal model signals. Gnosis was accepted to **EACL 2027**. [MHLC paper](https://arxiv.org/abs/2607.14277) · [Gnosis paper](https://arxiv.org/abs/2512.20578)
+
+```bibtex
+@article{ghasemabadi2026multi,
+  title={Multi-Head Latent Control: A Unified Interface for LLM Agent Decision Making},
+  author={Ghasemabadi, Amirhosein and Chen, Ruichen and Rashidi, Bahador and Niu, Di},
+  journal={arXiv preprint arXiv:2607.14277},
+  year={2026}
+}
+
+@article{ghasemabadi2025can,
+  title={Can LLMs predict their own failures? Self-awareness via internal circuits},
+  author={Ghasemabadi, Amirhosein and Niu, Di},
+  journal={arXiv preprint arXiv:2512.20578},
+  year={2025}
+}
+```

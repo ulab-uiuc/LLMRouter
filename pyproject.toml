@@ -90,6 +90,7 @@ include = ["llmrouter*", "openclaw_router*"]
 [tool.setuptools.package-data]
 "llmrouter.models.gnosis_latent_router" = [
   "README.md",
+  "assets/*.png",
   "backend/*.md",
   "backend/recipes/training/*.yaml",
 ]
