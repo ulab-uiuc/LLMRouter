@@ -1,31 +1,40 @@
 # Multi-Head Latent Control (MHLC) router
 
-**Can the small model answer this one correctly?** Multi-Head Latent Control (MHLC) lets the small model answer first. A lightweight **Capability Head** reads the hidden states of that answer and estimates how likely it is to be correct. When the score meets your threshold, LLMRouter returns the answer it already has. When the score falls below it, the larger model gets the original question.
+**Which answers can you keep on the small model?** Multi-Head Latent Control (MHLC) lets the small model answer first. Its **Capability Head** reads the hidden states from that answer and estimates whether the answer is correct. LLMRouter returns the answer if its score meets your threshold. Otherwise, it forwards the original question to the larger model.
 
 **Train only the head.** Give it examples of the small model’s answers and their correctness scores. The included Qwen3.5-4B recipe updates **2.86M parameters** and keeps the backbone frozen. At inference, the same vLLM engine replays the completed chat once to read the hidden states. The head produces one score between 0 and 1 without a separate LLM judge. An accepted answer needs no call to the larger model.
 
-[Paper results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU quickstart](#gpu-quickstart) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
+[Model confidence](#how-does-mhlc-compare-with-model-confidence) · [Routing results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU quickstart](#gpu-quickstart) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
 
 ![MHLC architecture showing the Capability Head for model handoff and the Resolution Head for choosing how an agent responds.](assets/mhlc-overview.png)
 
 *Figure 1 from the revised MHLC manuscript.* The diagram shows both MHLC heads. LLMRouter uses the Capability Head for the handoff decision. [arXiv preprint](https://arxiv.org/abs/2607.14277) · [Original implementation](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
 
+## How does MHLC compare with model confidence?
+
+Token confidence measures how probable the model found the words it generated. Logit entropy measures how uncertain it was when choosing the next token. A model can score highly on token confidence and still give the wrong answer. On ScreenSpot-Pro, correct and incorrect Qwen3.5-9B answers had substantially overlapping token-confidence scores. The Capability Head separated the two groups more clearly. [Token-confidence distributions in the MHLC preprint](https://arxiv.org/html/2607.14277v1#A2.F4)
+
+In the revised manuscript, the head improved final answer quality and used the larger model less often in both model families. [Original confidence comparison, Table 11](assets/mhlc-confidence-baselines.png)
+
+- **Qwen3.5-4B → 27B-Thinking, six benchmarks.** MHLC scored **71.5 out of 100** and sent **52.7%** of questions to the larger model. Routing by token confidence or by logit entropy scored **69.0** and sent **90.0%** in each case. That is **2.5 points higher with about 37 fewer calls to 27B per 100 questions**, on average.
+- **Gemma-4B → 31B-Thinking, five benchmarks.** MHLC scored **68.0** and sent **71.6%** of questions to the larger model. Token confidence scored **64.0** and sent **90.1%**. Logit entropy scored **65.0** and sent **89.8%**.
+
 ## Routing results from the paper
 
-Across six benchmarks covering chart reading, visual math, visual question answering, GUI grounding, and general knowledge, MHLC brought Qwen3.5-4B within **0.8 percentage points** of always using Qwen3.5-27B-Thinking. On average, **47.3%** of questions stayed with the 4B model.
+The Qwen results below cover six benchmarks spanning chart reading, visual math, visual question answering, GUI grounding, and general knowledge. Each benchmark counts equally in both columns. At **71.5**, MHLC came within **0.8 points** of sending every question to Qwen3.5-27B-Thinking. It also came within **0.2 points** of the Skywork ORM-8B verifier, which sent **90.6%** of questions to the larger model.
 
 | Routing method | Answer quality (score out of 100) | Questions sent to the larger model (Qwen3.5-27B) |
 | --- | ---: | ---: |
 | Qwen3.5-4B alone | 62.3 | 0.0% |
 | MLPRouter | 64.8 | 35.3% |
 | RouterDC | 65.7 | 44.9% |
+| Token confidence | 69.0 | 90.0% |
+| Logit entropy | 69.0 | 90.0% |
 | **MHLC Capability Head** | **71.5** | **52.7%** |
 | Skywork ORM-8B | 71.7 | 90.6% |
 | Qwen3.5-27B-Thinking alone | 72.3 | 100.0% |
 
-Each of the six benchmarks counts equally in both columns.
-
-The same comparison on Gemma covered five benchmarks. With Gemma-4B and Gemma-31B-Thinking, MHLC **matched Skywork ORM-8B’s 68.0% score** and sent **71.6%** of questions to the larger model on average, compared with Skywork’s **88.0%**.
+On Gemma, MHLC matched Skywork ORM-8B’s **68.0** while sending **71.6%** of questions to the larger model, compared with Skywork’s **88.0%**.
 
 ![Table 2 compares task scores and escalation rates for Qwen and Gemma. Across the five Gemma benchmarks, the Capability Head scored 68.0% at 71.6% mean escalation. Always using the larger model scored 69.8%.](assets/mhlc-routing-results.png)
 
