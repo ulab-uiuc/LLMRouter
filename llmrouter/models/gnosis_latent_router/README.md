@@ -4,11 +4,16 @@
 
 **Train only the head.** Give it examples of the small model’s answers and their correctness scores. The included Qwen3.5-4B recipe updates **2.86M parameters** and keeps the backbone frozen. At inference, the same vLLM engine replays the completed chat once to read the hidden states. The head produces one score between 0 and 1 without a separate LLM judge. An accepted answer needs no call to the larger model.
 
-[Model confidence](#how-does-mhlc-compare-with-model-confidence) · [Routing results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU quickstart](#gpu-quickstart) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
+[Models and weights](#models-and-weights) · [Model confidence](#how-does-mhlc-compare-with-model-confidence) · [Routing results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU quickstart](#gpu-quickstart) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
 
 ![MHLC architecture showing the Capability Head for model handoff and the Resolution Head for choosing how an agent responds.](assets/mhlc-overview.png)
 
 *Figure 1 from the revised MHLC manuscript.* The diagram shows both MHLC heads. LLMRouter uses the Capability Head for the handoff decision. [arXiv preprint](https://arxiv.org/abs/2607.14277) · [Original implementation](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
+
+## Models and weights
+
+- **LLMRouter preset.** Train a vLLM-native Capability Head for **Qwen3.5-4B** and route to **Qwen3.5-9B** as the fallback. The preset accepts text and image inputs. [Training and routing config](../../../configs/model_config_train/gnosis_qwen35_4b.yaml)
+- **Pretrained MHLC weights.** The original implementation provides **12 head checkpoints** for **Qwen3-VL** (2B, 4B, and 32B), **Qwen3.5** (4B and 9B), and **Gemma 4 E4B**. Use the original runtime with the checkpoint for your backbone and thinking mode. [Download the weights](https://huggingface.co/collections/AmirhoseinGH/multi-head-latent-control-capability-heads) · [Checkpoint and model variants](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control#pretrained-capability-heads)
 
 ## How does MHLC compare with model confidence?
 
