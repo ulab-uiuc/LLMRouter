@@ -94,7 +94,8 @@ The vLLM connector writes temporary tensors to shared memory and the reader remo
 
 ## Citing MHLC and Gnosis
 
-Cite MHLC for the Capability Head and routing experiments. Cite Gnosis for the earlier work on predicting answer correctness from internal model signals. Gnosis was accepted to **EACL 2027**. [MHLC paper](https://arxiv.org/abs/2607.14277) · [Gnosis paper](https://arxiv.org/abs/2512.20578)
+- **MHLC** introduces the Capability Head used by this router and evaluates when to escalate to a larger model. [MHLC paper](https://arxiv.org/abs/2607.14277) · [Original MHLC repository](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)
+- **Gnosis** studies how a model’s internal signals predict whether its answer is correct. The paper was accepted to **EACL 2027**. [Gnosis paper](https://arxiv.org/abs/2512.20578) · [Original Gnosis repository](https://github.com/Amirhosein-gh98/Gnosis)
 
 ```bibtex
 @article{ghasemabadi2026multi,
