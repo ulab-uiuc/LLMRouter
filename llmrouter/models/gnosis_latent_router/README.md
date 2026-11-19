@@ -1,8 +1,15 @@
 # Multi-Head Latent Control (MHLC) router
 
-**Which answers can you keep on the small model?** Multi-Head Latent Control (MHLC) lets the small model answer first. Its **Capability Head** reads the hidden states from that answer and estimates whether the answer is correct. LLMRouter returns the answer if its score meets your threshold. Otherwise, it forwards the original question to the larger model.
+Multi-Head Latent Control (MHLC) helps an initial model handle the questions it can answer and routes the remaining questions to a configured fallback. The initial model generates an answer, and a lightweight **Capability Head** reads its hidden states to estimate whether the answer is correct. LLMRouter returns the answer when the score meets your threshold. Otherwise, it sends the original question to the fallback model.
 
-**Train only the head.** Give it examples of the small model’s answers and their correctness scores. The included Qwen3.5-4B recipe updates **2.86M parameters** and keeps the backbone frozen. At inference, the same vLLM engine replays the completed chat once to read the hidden states. The head produces one score between 0 and 1 without a separate LLM judge. An accepted answer needs no call to the larger model.
+Use a head trained for the initial model and configure the fallback for your deployment. The threshold lets you balance answer quality and fallback usage.
+
+- **Selective handoff.** Return answers the initial model is likely to get right and call the fallback for answers the head scores below the threshold.
+- **Lightweight training.** Train the head on graded answers while keeping the language model frozen. The included Qwen3.5-4B recipe trains **2.86M parameters**.
+- **Strong results across domains.** The paper evaluates chart understanding, visual math, GUI grounding, visual question answering, and general knowledge. MHLC outscored MLPRouter and RouterDC on most reported Qwen and Gemma tasks and was competitive with Skywork ORM-8B.
+- **Complete pipeline.** Generate answers, label correctness, train a head, and route questions. You can also train on answers you have already graded.
+
+For inference, the same vLLM engine replays the completed chat to extract hidden states. The head then produces a score between 0 and 1 without a separate LLM judge. Accepted answers require no fallback call.
 
 [Models and weights](#models-and-weights) · [Model confidence](#how-does-mhlc-compare-with-model-confidence) · [Routing results](#routing-results-from-the-paper) · [Installation](#installation) · [GPU quickstart](#gpu-quickstart) · [Train a head](#run-the-mixed-source-pipeline) · [Route a question](#route-a-question) · [Citations](#citing-mhlc-and-gnosis)
 
@@ -26,7 +33,7 @@ In the revised manuscript, the head improved final answer quality and used the l
 
 ## Routing results from the paper
 
-The Qwen results below cover six benchmarks spanning chart reading, visual math, visual question answering, GUI grounding, and general knowledge. Each benchmark counts equally in both columns. At **71.5**, MHLC came within **0.8 points** of sending every question to Qwen3.5-27B-Thinking. It also came within **0.2 points** of the Skywork ORM-8B verifier, which sent **90.6%** of questions to the larger model.
+The revised manuscript reports results for Qwen and Gemma model pairs across **CharXiv, MathVerse, MathVista, ScreenSpot-Pro, SimpleVQA, and MMLU-Pro**. As one example, the Qwen comparison below averages all six benchmarks equally. MHLC came within **0.8 points** of sending every question to Qwen3.5-27B-Thinking. It also came within **0.2 points** of the Skywork ORM-8B verifier, which sent **90.6%** of questions to the larger model.
 
 | Routing method | Answer quality (score out of 100) | Questions sent to the larger model (Qwen3.5-27B) |
 | --- | ---: | ---: |
