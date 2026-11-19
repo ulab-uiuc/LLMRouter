@@ -60,7 +60,19 @@ classifiers = [
 router-r1 = ["vllm==0.6.3", "torch==2.4.0", "openai>=1.0"]
 # RouteFM is a frozen in-context router with a BGE text interface.
 routefm = ["routefm-router[bge]>=1.1,<2"]
-# All optional dependencies
+# MHLC uses vLLM's hidden-state extraction connector for training and inference.
+gnosis = [
+  "filelock",
+  "huggingface-hub",
+  "math-verify",
+  "matplotlib",
+  "pillow",
+  "pyarrow",
+  "qwen-vl-utils",
+  "vllm==0.26.0",
+  "wandb",
+]
+# Legacy RouterR1 bundle. MHLC requires a different vLLM version.
 all = ["vllm==0.6.3", "torch==2.4.0", "openai>=1.0"]
 
 [project.scripts]
@@ -74,3 +86,10 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["llmrouter*", "openclaw_router*"]
+
+[tool.setuptools.package-data]
+"llmrouter.models.gnosis_latent_router" = [
+  "README.md",
+  "backend/*.md",
+  "backend/recipes/training/*.yaml",
+]

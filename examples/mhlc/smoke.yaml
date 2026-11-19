@@ -1,0 +1,44 @@
+# prepare_smoke.py fills in the local model and GPU memory budget in this template.
+gnosis_latent_router:
+  target_model: null
+  target_model_name: tiny-qwen
+  fallback_model: fallback
+  threshold: 0.5
+  pipeline:
+    workspace: .
+    environment:
+      VLLM_USE_FLASHINFER_SAMPLER: "0"
+    variables:
+      gpu_memory_utilization: 0.35
+    run_stages: [generate, label, train]
+    stages:
+      generate:
+        command: ["{python}", "{backend_root}/combined_all_datagen_multimodel.py",
+          --model-id, "{target_model}", --model-family, qwen3_5, --thinking-mode, "off",
+          --source, dapo, --source-file, arithmetic.parquet, --save-root, run,
+          --total-qa-pairs, 2, --gen-chunk-size, 2, --raw-shard-size, 2,
+          --max-new-tokens, 1, --max-model-len, 1024, --enforce-eager,
+          --gpu-memory-utilization, "{gpu_memory_utilization}"]
+      label:
+        command: ["{python}", "{backend_root}/combined_all_labeling_multimodel.py",
+          --run-root, run, --judge-model-id, "{target_model}", --judge-batch-size, 2,
+          --judge-max-model-len, 2048, --judge-max-tokens, 128, --judge-enforce-eager,
+          --judge-gpu-memory-utilization, "{gpu_memory_utilization}"]
+      train:
+        command: ["{python}", "{backend_root}/train_head_standalone_vllm_regression_weighted_multimodel.py",
+          --config, training.yaml]
+  inference:
+    checkpoint: head/aux_head_final.pt
+    generator:
+      model_family: qwen3_5
+      thinking_mode: "off"
+      max_model_len: 2048
+      max_num_seqs: 2
+      enforce_eager: true
+    auxiliary:
+      model_family: qwen3_5
+      thinking_mode: "off"
+      max_seq_len: 2048
+    sampling:
+      greedy: true
+      max_new_tokens: 1

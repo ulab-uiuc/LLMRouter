@@ -43,6 +43,7 @@ from llmrouter.models import (
     AutomixRouter,
     GMTRouter,
     PersonalizedRouter,
+    GnosisLatentRouter,
 )
 from llmrouter.models.llmmultiroundrouter import LLMMultiRoundRouter
 from llmrouter.models.knnmultiroundrouter import KNNMultiRoundRouter
@@ -75,6 +76,9 @@ ROUTER_REGISTRY = {
     "llmmultiroundrouter": LLMMultiRoundRouter,
     "knnmultiroundrouter": KNNMultiRoundRouter,
     "automixrouter": AutomixRouter,
+    "mhlc": GnosisLatentRouter,
+    "gnosis_latent_router": GnosisLatentRouter,
+    "gnosislatentrouter": GnosisLatentRouter,
 }
 
 # Add optional routers if available
@@ -171,6 +175,11 @@ def load_router(router_name: str, config_path: str, load_model_path: Optional[st
         )
 
     router_class = ROUTER_REGISTRY[router_name_lower]
+
+    if load_model_path and router_class is GnosisLatentRouter:
+        router = router_class(yaml_path=config_path)
+        router.load_router(load_model_path)
+        return router
 
     # Override model path in config if provided
     if load_model_path:
@@ -386,6 +395,21 @@ def infer_query(
                 "routing_result": routing_result,
             }
 
+        # Gnosis generates the target response before scoring its latent
+        # trajectory. Reuse an accepted response instead of generating twice.
+        if (
+            ROUTER_REGISTRY.get(router_name_lower) is GnosisLatentRouter
+            and routing_result.get("response") is not None
+        ):
+            return {
+                "success": True,
+                "query": query,
+                "model_name": model_name,
+                "response": routing_result["response"],
+                "routing_result": routing_result,
+                "method": routing_result.get("method", router_name_lower),
+            }
+
         # Get API endpoint and model name from llm_data if available
         api_model_name = model_name  # Default to model_name
         api_endpoint = None
@@ -441,6 +465,15 @@ def infer_query(
             request["service"] = service
 
         result = call_api(request, max_tokens=max_tokens, temperature=temperature)
+
+        if result.get("error"):
+            return {
+                "success": False,
+                "query": query,
+                "model_name": model_name,
+                "error": result["error"],
+                "routing_result": routing_result,
+            }
 
         response = result.get("response", "No response generated")
 

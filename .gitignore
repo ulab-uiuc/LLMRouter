@@ -67,3 +67,11 @@ site/
 data/tsrbench/datasets/
 data/tsrbench/evaluation/results/
 data/tsrbench_data/
+
+# Local MHLC pipeline outputs
+/mhlc-workspace/
+/data/train/Qwen3.5/Qwen3_5_4B_*_Mixed_Sources_*/
+/trained_models/
+/eval_outputs/
+/logs/gnosis/
+/wandb/

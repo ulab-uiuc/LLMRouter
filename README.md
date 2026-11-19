@@ -86,6 +86,7 @@
 | `hybrid_llm` | ✅ | ✅ | Hybrid LLM routing strategy | [📖](llmrouter/models/hybrid_llm/README.md) |
 | `graphrouter` | ✅ | ✅ | Graph-based routing | [📖](llmrouter/models/graphrouter/README.md) |
 | `causallm_router` | ✅ | ✅ | Causal Language Model router | [📖](llmrouter/models/causallm_router/README.md) |
+| `gnosis_latent_router` | ✅ | ✅ | Multi-Head Latent Control (MHLC) capability scoring and selective escalation | [📖](llmrouter/models/gnosis_latent_router/README.md) |
 | `smallest_llm` | N/A | ✅ | Always routes to smallest model | [📖](llmrouter/models/smallest_llm/README.md) |
 | `largest_llm` | N/A | ✅ | Always routes to largest model | [📖](llmrouter/models/largest_llm/README.md) |
 
@@ -111,6 +112,8 @@
 | `knnmultiroundrouter` | ✅ | ✅ | KNN-based agentic router for complex tasks | [📖](llmrouter/models/knnmultiroundrouter/README.md) |
 | `llmmultiroundrouter` | N/A | ✅ | LLM-based agentic router for complex tasks | [📖](llmrouter/models/llmmultiroundrouter/README.md) |
 
+For the MHLC router, start with the two-question GPU smoke test or the full Qwen3.5-4B data generation, labeling, training, and inference recipe. [MHLC guide](llmrouter/models/gnosis_latent_router/README.md)
+
 ## 🚀 Get Started
 
 ### Installation
@@ -135,7 +138,10 @@ pip install -e .
 # RouterR1 is tested with vllm==0.6.3 (torch==2.4.0); the extra pins these versions.
 pip install -e ".[router-r1]"
 
-# Optional: Install all optional dependencies
+# Optional: Install MHLC training and inference in a dedicated CUDA environment
+pip install -e ".[gnosis]"
+
+# Optional: Install the legacy RouterR1 dependency bundle
 pip install -e ".[all]"
 ```
 

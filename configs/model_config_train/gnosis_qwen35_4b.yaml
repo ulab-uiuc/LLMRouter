@@ -1,0 +1,159 @@
+# Multi-Head Latent Control (MHLC) capability routing with Qwen3.5-4B.
+gnosis_latent_router:
+  target_model: Qwen/Qwen3.5-4B
+  target_model_name: qwen3.5-4b
+  fallback_model: qwen3.5-9b
+  threshold: 0.5
+
+  pipeline:
+    # Writable data/checkpoint/output root, resolved relative to this file.
+    # Override with --workspace or GNOSIS_WORKSPACE.
+    workspace: ../..
+    log_dir: logs/gnosis
+    downloaded_release_marker: "{run_root}/verified/.mhlc_artifact.json"
+    run_stages:
+      - generate
+      - label
+      - train
+      - benchmark
+
+    variables:
+      model_revision: &target_revision 851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a
+      run_root: data/train/Qwen3.5/Qwen3_5_4B_think_off_hard_Mixed_Sources_40k
+      training_recipe: "{backend_root}/recipes/training/qwen3_5_4b_think_off.yaml"
+      checkpoint: trained_models/Qwen3_5_4B_think_off_hard_Mixed_Sources_40k_auxhead/aux_head_final.pt
+
+    stages:
+      generate:
+        command:
+          - "{python}"
+          - "{backend_root}/combined_all_datagen_multimodel.py"
+          - --model-id
+          - "{target_model}"
+          - --model-revision
+          - "{model_revision}"
+          - --model-family
+          - qwen3_5
+          - --thinking-mode
+          - "off"
+          - --run-name
+          - Qwen3_5_4B_think_off_hard_Mixed_Sources_40k
+          - --save-root
+          - "{run_root}"
+          - --total-qa-pairs
+          - "40000"
+          - --gen-chunk-size
+          - "64"
+          - --raw-shard-size
+          - "500"
+          - --seed
+          - "42"
+
+      label:
+        command:
+          - "{python}"
+          - "{backend_root}/combined_all_labeling_multimodel.py"
+          - --run-root
+          - "{run_root}"
+          - --judge-model-id
+          - Qwen/Qwen3-VL-30B-A3B-Instruct-FP8
+          - --judge-revision
+          - d9748a51ae66354c4dad665aab2c71f26cf2c8cd
+          # The judge returns a single JSON score. Keep requests and KV cache
+          # bounded so labeling can coexist with the resident judge model.
+          - --judge-batch-size
+          - "8"
+          - --judge-gpu-memory-utilization
+          - "0.85"
+          - --judge-max-model-len
+          - "16384"
+          - --judge-max-tokens
+          - "512"
+
+      train:
+        command:
+          - "{python}"
+          - "{backend_root}/train_head_standalone_vllm_regression_weighted_multimodel.py"
+          - --config
+          - "{training_recipe}"
+
+      benchmark:
+        command:
+          - "{python}"
+          - "{backend_root}/multi_agenT_bench/run_multi_agent_generate_then_eval.py"
+          - --benchmark
+          - triviaqa
+          - --model1_name_or_path
+          - "{target_model}"
+          - --model1_revision
+          - "{model_revision}"
+          - --model2_name_or_path
+          - Qwen/Qwen3.5-9B
+          - --model1_aux_head_ckpt
+          - "{checkpoint}"
+          - --model1_model_family
+          - qwen3_5
+          - --model1_thinking_mode
+          - "off"
+          - --model2_model_family
+          - qwen3_5
+          - --model2_thinking_mode
+          - "off"
+          - --model1_params
+          - "4"
+          - --model2_params
+          - "9"
+          - --strategy_names
+          - single_agent_model1,single_agent_model2,m1_after_finish_handoff_fresh_m2
+          - --model1_aux_thresholds
+          - 0.5,0.6,0.7,0.8,0.9
+          - --model2_aux_threshold
+          - "0.8"
+          - --judge_batch_size
+          - "32"
+          - --output_base_root
+          - eval_outputs/multi_agent_compact_40k
+
+  # Native single-query routing imports these exact integrated runtime classes:
+  # VLLMChatRuntime, AuxHeadRuntime, and their checkpoint-aware configs.
+  inference:
+    runtime_module: multi_agenT_bench/compact_multi_agent_shared_optimized_v4_textbench.py
+    checkpoint: "{checkpoint}"
+    generator:
+      revision: *target_revision
+      dtype: bfloat16
+      max_model_len: 32000
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.7
+      max_num_seqs: 128
+      enforce_eager: false
+      trust_remote_code: false
+      limit_mm_images: 1
+      model_family: qwen3_5
+      thinking_mode: "off"
+    sampling:
+      greedy: false
+      temperature: 0.7
+      top_p: 0.8
+      top_k: 20
+      repetition_penalty: 1.0
+      presence_penalty: 1.5
+      max_new_tokens: 16000
+    auxiliary:
+      revision: *target_revision
+      trust_remote_code: false
+      dtype: bf16
+      max_seq_len: 32000
+      max_pixels: 200000
+      hidden_states_storage_path: null
+      regression_threshold: 0.5
+      # null means the trained checkpoint cfg remains authoritative.
+      head_input_mode: null
+      hidden_layer_selection: null
+      hidden_layer_index: null
+      hidden_layer_indices: null
+      model_family: qwen3_5
+      thinking_mode: "off"
+
+data_path:
+  llm_data: data/gnosis_latent_router_llm_data.json

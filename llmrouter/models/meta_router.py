@@ -23,7 +23,9 @@ class MetaRouter(nn.Module, ABC):
     Training logic is intentionally decoupled and handled by Trainer classes.
     """
 
-    def __init__(self, model: nn.Module, yaml_path: str | None = None, resources=None):
+    def __init__(
+        self, model: nn.Module, yaml_path: str | None = None, resources=None, *, data_root=None
+    ):
         """
         Args:
             model (nn.Module):
@@ -33,6 +35,8 @@ class MetaRouter(nn.Module, ABC):
                 and data will be loaded during initialization.
             resources (Any, optional):
                 Optional shared resources or context (e.g., tokenizer, env, etc.).
+            data_root (str | os.PathLike, optional):
+                Directory for relative data paths. Defaults to the LLMRouter project root.
         """
         super().__init__()
         self.model = model
@@ -53,7 +57,7 @@ class MetaRouter(nn.Module, ABC):
             )
 
             # Load data via DataLoader (side-effect: attach datasets to `self`)
-            loader = DataLoader(project_root)
+            loader = DataLoader(data_root or project_root)
             loader.load_data(self.cfg, self)
 
             # Load metric weights if provided
