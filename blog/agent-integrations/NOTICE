@@ -1,0 +1,19 @@
+This site adapts the ScientistTwo website template supplied in scientist-two.github.io-main/.
+Original project: https://github.com/scientist-two/scientist-two.github.io
+Template license: Apache License, Version 2.0 (see LICENSE).
+Modified 2026-10-18: LLMRouter content, tutorial styling, local assets, and demo interactions.
+
+The original WorkBuddy and Codex tutorials, video recordings, and posters are from llmrouter-blog-site/.
+
+Paper figure: Feng et al. (2026), LLMRouter: Unified Infrastructure for Developing, Evaluating, and Deploying LLM Routers, Figure 1.
+Source: https://arxiv.org/html/2608.06867v1/unified.png
+Paper: https://arxiv.org/abs/2608.06867
+License: CC BY 4.0, https://creativecommons.org/licenses/by/4.0/
+The figure is unmodified; it is scaled responsively on the page.
+
+Additional library illustration (retained as an optional asset):
+https://raw.githubusercontent.com/ulab-uiuc/LLMRouter/main/assets/llmrouter_.png
+
+The Google Sans and Noto Sans fonts are distributed under their included licenses in static/fonts/.
+
+Modified 2026-10-19: rewritten bilingual editorial content and reading layout; original media retained. Design reference: https://lilianweng.github.io/posts/2023-06-23-agent/ (no text or assets copied).
