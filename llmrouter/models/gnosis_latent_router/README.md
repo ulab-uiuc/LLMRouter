@@ -24,7 +24,7 @@ For inference, the same vLLM engine replays the completed chat to extract hidden
 
 ### Early routing
 
-MHLC’s released prefix heads score hidden states from the first **200 generated tokens**, so a handoff decision can happen before the answer is complete. Use these checkpoints with the original MHLC implementation. The LLMRouter vLLM integration scores completed answers. [Prefix checkpoints](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control#pretrained-capability-heads)
+MHLC’s released prefix heads score hidden states from a partial answer, so a handoff decision can happen before the answer is complete. Use these checkpoints with the original MHLC implementation. The LLMRouter vLLM integration scores completed answers. [Prefix checkpoints](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control#pretrained-capability-heads)
 
 ## How does MHLC compare with model confidence?
 
