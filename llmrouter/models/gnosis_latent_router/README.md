@@ -22,6 +22,10 @@ For inference, the same vLLM engine replays the completed chat to extract hidden
 - **LLMRouter preset.** Train a vLLM-native Capability Head for **Qwen3.5-4B** and route to **Qwen3.5-9B** as the fallback. The preset accepts text and image inputs. [Training and routing config](../../../configs/model_config_train/gnosis_qwen35_4b.yaml)
 - **Pretrained MHLC weights.** The original implementation provides **12 head checkpoints** for **Qwen3-VL** (2B, 4B, and 32B), **Qwen3.5** (4B and 9B), and **Gemma 4 E4B**. Use the original runtime with the checkpoint for your backbone and thinking mode. [Download the weights](https://huggingface.co/collections/AmirhoseinGH/multi-head-latent-control-capability-heads) · [Checkpoint and model variants](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control#pretrained-capability-heads)
 
+### Early routing
+
+MHLC’s released prefix heads score hidden states from the first **200 generated tokens**, so a handoff decision can happen before the answer is complete. Use these checkpoints with the original MHLC implementation. The LLMRouter vLLM integration scores completed answers. [Prefix checkpoints](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control#pretrained-capability-heads)
+
 ## How does MHLC compare with model confidence?
 
 Token confidence measures how probable the model found the words it generated. Logit entropy measures how uncertain it was when choosing the next token. A model can score highly on token confidence and still give the wrong answer. On ScreenSpot-Pro, correct and incorrect Qwen3.5-9B answers had substantially overlapping token-confidence scores. The Capability Head separated the two groups more clearly. [Token-confidence distributions in the MHLC preprint](https://arxiv.org/html/2607.14277v1#A2.F4)

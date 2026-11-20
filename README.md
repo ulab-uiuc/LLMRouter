@@ -111,10 +111,12 @@
 | `knnmultiroundrouter` | ✅ | ✅ | KNN-based agentic router for complex tasks | [📖](llmrouter/models/knnmultiroundrouter/README.md) |
 | `llmmultiroundrouter` | N/A | ✅ | LLM-based agentic router for complex tasks | [📖](llmrouter/models/llmmultiroundrouter/README.md) |
 
-### Single-Round, Multi-Round, Agentic, and Multimodal Routers
+### General-Purpose Routers
 | Router | Training | Inference | Description | Tutorial |
 |--------|:--------:|:---------:|-------------|:--------:|
-| `mhlc` | ✅ | ✅ | Multi-Head Latent Control for routing by predicted answer correctness ([MHLC paper](https://arxiv.org/abs/2607.14277), [Gnosis paper](https://arxiv.org/abs/2512.20578), [code](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)) | [📖](llmrouter/models/gnosis_latent_router/README.md) |
+| `mhlc` | ✅ | ✅ | Multi-Head Latent Control for routing from the hidden states of generated text ([MHLC paper](https://arxiv.org/abs/2607.14277), [Gnosis paper, EACL 2027](https://arxiv.org/abs/2512.20578), [code](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)) | [📖](llmrouter/models/gnosis_latent_router/README.md) |
+
+MHLC applies to single-round, multi-round, agentic, and multimodal workflows. Its released prefix heads support [early routing from partial answers](llmrouter/models/gnosis_latent_router/README.md#early-routing).
 
 ## 🚀 Get Started
 
