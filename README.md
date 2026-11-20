@@ -98,7 +98,6 @@
 | Router | Training | Inference | Description | Tutorial |
 |--------|:--------:|:---------:|-------------|:--------:|
 | `tsrouter` | ✅ | ✅ | Routes time series queries to the best (modality, model) pair — text LLMs vs. visual/mix VLMs — via a 4-partite heterogeneous graph ([paper](https://arxiv.org/abs/2607.08940v1), [code](https://github.com/tianyi-lab/TSRouter)) | [📖](llmrouter/models/tsrouter/README.md) |
-| `mhlc` | ✅ | ✅ | Multi-Head Latent Control for routing by predicted answer correctness ([MHLC paper](https://arxiv.org/abs/2607.14277), [Gnosis paper](https://arxiv.org/abs/2512.20578), [code](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)) | [📖](llmrouter/models/gnosis_latent_router/README.md) |
 
 ### Personalized Routers
 | Router | Training | Inference | Description | Tutorial |
@@ -111,6 +110,11 @@
 |--------|:--------:|:---------:|-------------|:--------:|
 | `knnmultiroundrouter` | ✅ | ✅ | KNN-based agentic router for complex tasks | [📖](llmrouter/models/knnmultiroundrouter/README.md) |
 | `llmmultiroundrouter` | N/A | ✅ | LLM-based agentic router for complex tasks | [📖](llmrouter/models/llmmultiroundrouter/README.md) |
+
+### Single-Round, Multi-Round, Agentic, and Multimodal Routers
+| Router | Training | Inference | Description | Tutorial |
+|--------|:--------:|:---------:|-------------|:--------:|
+| `mhlc` | ✅ | ✅ | Multi-Head Latent Control for routing by predicted answer correctness ([MHLC paper](https://arxiv.org/abs/2607.14277), [Gnosis paper](https://arxiv.org/abs/2512.20578), [code](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)) | [📖](llmrouter/models/gnosis_latent_router/README.md) |
 
 ## 🚀 Get Started
 
