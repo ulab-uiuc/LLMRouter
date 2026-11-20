@@ -114,7 +114,7 @@
 ### General-Purpose Routers
 | Router | Training | Inference | Description | Tutorial |
 |--------|:--------:|:---------:|-------------|:--------:|
-| `mhlc` | ✅ | ✅ | Multi-Head Latent Control routes from the hidden states of generated text in single-round, multi-round, agentic, and multimodal workflows. Released prefix heads support [early routing from partial answers](llmrouter/models/gnosis_latent_router/README.md#early-routing). ([MHLC paper](https://arxiv.org/abs/2607.14277), [Gnosis paper, EACL 2027](https://arxiv.org/abs/2512.20578), [code](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control)) | [📖](llmrouter/models/gnosis_latent_router/README.md) |
+| `mhlc` | ✅ | ✅ | **Multi-Head Latent Control** uses hidden states from generated text to decide when to keep an answer and when to call a stronger model. It works across single-round, multi-round, agentic, and multimodal workflows. Released prefix heads enable [early routing](llmrouter/models/gnosis_latent_router/README.md#early-routing) before an answer is complete.<br>[MHLC paper](https://arxiv.org/abs/2607.14277) · [Gnosis paper (EACL 2027)](https://arxiv.org/abs/2512.20578) · [GitHub](https://github.com/Amirhosein-gh98/Multi-Head-Latent-Control) | [📖](llmrouter/models/gnosis_latent_router/README.md) |
 
 ## 🚀 Get Started
 
