@@ -30,6 +30,7 @@ from llmrouter.models import (
     AutomixRouter,
     GMTRouter,
     PersonalizedRouter,
+    GnosisLatentRouter,
 )
 from llmrouter.models.llmmultiroundrouter import LLMMultiRoundRouter
 from llmrouter.models.knnmultiroundrouter import KNNMultiRoundRouter
@@ -366,6 +367,9 @@ ROUTER_REGISTRY = {
     "llmmultiroundrouter": LLMMultiRoundRouter,
     "knnmultiroundrouter": KNNMultiRoundRouter,
     "automixrouter": AutomixRouter,
+    "mhlc": GnosisLatentRouter,
+    "gnosis_latent_router": GnosisLatentRouter,
+    "gnosislatentrouter": GnosisLatentRouter,
 }
 
 # Add optional routers if available
@@ -592,6 +596,10 @@ def load_router(router_name: str, config_path: str, load_model_path: Optional[st
         )
     
     router_class = ROUTER_REGISTRY[router_name_lower]
+    if router_class is GnosisLatentRouter:
+        from llmrouter.cli.router_inference import load_router as load_inference_router
+
+        return load_inference_router(router_name, config_path, load_model_path)
     
     # Override model path in config if provided
     if load_model_path:
@@ -655,6 +663,14 @@ def predict(
      
     # Prepare query based on mode
     query_for_router = prepare_query_by_mode(message, history_pairs, mode, top_k)
+
+    if ROUTER_REGISTRY.get(router_name_lower) is GnosisLatentRouter:
+        from llmrouter.cli.router_inference import infer_query
+
+        result = infer_query(query_for_router, router_instance, router_name, temperature=temperature)
+        if not result["success"]:
+            return f"Error: {result['error']}"
+        return f"[{result['model_name']}]\n{result['response']}"
 
     # Check if router is a multi-round router (full pipeline in route_single)
     if router_name_lower in MULTI_ROUND_ROUTERS:

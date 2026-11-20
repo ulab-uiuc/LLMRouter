@@ -27,6 +27,7 @@ from llmrouter.models import (
     CausalLMRouter,
     GMTRouter,
     PersonalizedRouter,
+    GnosisLatentRouter,
     # Trainers
     KNNRouterTrainer,
     SVMRouterTrainer,
@@ -40,6 +41,7 @@ from llmrouter.models import (
     CausalLMTrainer,
     GMTRouterTrainer,
     PersonalizedRouterTrainer,
+    GnosisLatentRouterTrainer,
 )
 
 # Import multi-round routers
@@ -69,6 +71,9 @@ ROUTER_TRAINER_REGISTRY: Dict[str, Tuple[Any, Any]] = {
     "gmt_router": (GMTRouter, GMTRouterTrainer),
     "personalizedrouter": (PersonalizedRouter, PersonalizedRouterTrainer),
     "personalized_router": (PersonalizedRouter, PersonalizedRouterTrainer),
+    "mhlc": (GnosisLatentRouter, GnosisLatentRouterTrainer),
+    "gnosis_latent_router": (GnosisLatentRouter, GnosisLatentRouterTrainer),
+    "gnosislatentrouter": (GnosisLatentRouter, GnosisLatentRouterTrainer),
 }   
 
 # Routers that do not support training

@@ -249,6 +249,37 @@ def version_command(args):
     print(f"LLMRouter version: {version}")
 
 
+def gnosis_latent_router_command(args):
+    """Execute a Gnosis Latent Router pipeline stage."""
+    import json
+
+    from llmrouter.models.gnosis_latent_router.pipeline import (
+        run_gnosis_pipeline,
+    )
+
+    try:
+        result = run_gnosis_pipeline(
+            config_path=args.config,
+            action=args.gnosis_action,
+            query=getattr(args, "query", None),
+            workspace=getattr(args, "workspace", None),
+            dry_run=getattr(args, "dry_run", False),
+            route_only=getattr(args, "route_only", False),
+            temperature=getattr(args, "temp", 0.8),
+            max_tokens=getattr(args, "max_tokens", 1024),
+        )
+    except Exception as error:
+        print(f"Error: {error}", file=sys.stderr)
+        if getattr(args, "verbose", False):
+            import traceback
+
+            traceback.print_exc()
+        sys.exit(1)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    if result.get("inference", {}).get("success") is False:
+        sys.exit(1)
+
+
 def serve_command(args):
     """Execute the serve subcommand."""
     import os
@@ -618,6 +649,66 @@ OpenClaw Integration:
         help="Disable model prefix and suffix attribution in responses",
     )
     serve_parser.set_defaults(func=serve_command)
+
+    # ========== GNOSIS LATENT ROUTER SUBCOMMAND ==========
+    gnosis_parser = subparsers.add_parser(
+        "gnosis-latent-router",
+        aliases=["mhlc"],
+        help="Generate data, train, benchmark, and run Multi-Head Latent Control (MHLC)",
+        description=(
+            "Run individual Gnosis Latent Router stages or the complete "
+            "generate → label → train → benchmark workflow."
+        ),
+    )
+    gnosis_subparsers = gnosis_parser.add_subparsers(
+        dest="gnosis_action", required=True
+    )
+    for action in ("generate", "label", "train", "infer", "benchmark", "run"):
+        action_parser = gnosis_subparsers.add_parser(
+            action,
+            help=(
+                "Run the complete pipeline"
+                if action == "run"
+                else f"Run the {action} stage"
+            ),
+        )
+        action_parser.add_argument(
+            "--config", required=True, help="Gnosis Latent Router YAML config"
+        )
+        action_parser.add_argument(
+            "--workspace",
+            help=(
+                "Writable root for data, checkpoints, and evaluation outputs "
+                "(overrides config and GNOSIS_WORKSPACE)"
+            ),
+        )
+        if action != "infer":
+            action_parser.add_argument(
+                "--dry-run",
+                action="store_true",
+                help="Print resolved Gnosis command(s) without executing them",
+            )
+        if action in {"infer", "run"}:
+            action_parser.add_argument(
+                "--query",
+                required=action == "infer",
+                help=(
+                    "Optional query after benchmark evaluation"
+                    if action == "run"
+                    else "Query to route"
+                ),
+            )
+            action_parser.add_argument(
+                "--route-only",
+                action="store_true",
+                help="Return the routing decision without calling the fallback API",
+            )
+            action_parser.add_argument("--temp", type=float, default=0.8, help="Fallback sampling temperature")
+            action_parser.add_argument("--max-tokens", type=int, default=1024, help="Fallback output token limit")
+        action_parser.add_argument(
+            "--verbose", action="store_true", help="Show tracebacks"
+        )
+        action_parser.set_defaults(func=gnosis_latent_router_command)
 
     return parser
 

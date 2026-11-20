@@ -70,6 +70,9 @@ except Exception:
     TSRouter = None
     TSRouterTrainer = None
 
+from .gnosis_latent_router import GnosisLatentRouter
+from .gnosis_latent_router import GnosisLatentRouterTrainer
+
 __all__ = [
     "MetaRouter",
     "BaseTrainer",
@@ -119,4 +122,7 @@ __all__ = [
 
     "TSRouter",
     "TSRouterTrainer",
+
+    "GnosisLatentRouter",
+    "GnosisLatentRouterTrainer",
 ]
